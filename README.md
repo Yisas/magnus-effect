@@ -19,4 +19,4 @@ _Note: the [`bullet`](https://github.com/bulletphysics/bullet3) physics library 
 * [`glm`](https://github.com/g-truc/glm), an OpenGL mathematics library
 * [`stb`](https://github.com/nothings/stb), a texture loading library
 
-[`Learn OpenGL`](https://learnopengl.com/), an educational website for OpenGL from which some code is borrowed, namely for shader and model loading.
+[`Learn OpenGL`](https://learnopengl.com/), an educational website for OpenGL from which some code is borrowed, namely for shaders and model loading.
