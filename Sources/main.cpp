@@ -1,10 +1,19 @@
-﻿#include "glitter.hpp"
-#include "shader.hpp"
+﻿#include "shader.hpp"
 #include "model.hpp"
 
-#include <cstdio>
-#include <cstdlib>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
+
+using namespace std;
+using namespace glm;
+
+const char* TITLE = "Magnus Effect";
+const int windowWidth = 1280;
+const int windowHeight = 800;
 
 GLFWwindow* initialize() {
     // glfw: initialize and configure
@@ -16,10 +25,10 @@ GLFWwindow* initialize() {
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     
     // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, TITLE, nullptr, nullptr);
     if (window == nullptr)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return nullptr;
     }
@@ -28,7 +37,8 @@ GLFWwindow* initialize() {
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        cout << "Failed to initialize GLAD" << endl;
+        glfwTerminate();
         return nullptr;
     }
     
@@ -48,23 +58,23 @@ int main() {
     Shader shader("Shaders/standard.vert", "Shaders/standard.frag");
     Model model("Models/ball.blend");
 
-    // Rendering Loop
+    // Rendering loop
     while (glfwWindowShouldClose(window) == false) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        // Background Fill Color
+        // Background fill color
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Draw Scene
+        // draw scene
         shader.use();
-        shader.setMat4("projection", glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f));
-        shader.setMat4("view", glm::lookAt(glm::vec3(0, 10, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)));
-        shader.setMat4("model", glm::mat4(1));
-        model.Draw(shader);
+        shader.setMat4("projection", perspective(radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f));
+        shader.setMat4("view", lookAt(vec3(0, 10, 10), vec3(0, 0, 0), vec3(0, 1, 0)));
+        shader.setMat4("model", mat4(1));
+        model.draw(shader);
 
-        // Flip Buffers and Draw
+        // Flip buffers and draw
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
