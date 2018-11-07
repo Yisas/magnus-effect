@@ -5,3 +5,6 @@
 .vs/
 .vscode/
 *.code-workspace
+
+# assimp Blender model output file
+dna.txt

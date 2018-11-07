@@ -1,6 +1,3 @@
-// Preprocessor Directives
-#ifndef GLITTER
-#define GLITTER
 #pragma once
 
 // System Headers
@@ -8,16 +5,16 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-// Reference: https://github.com/nothings/stb/blob/master/stb_image.h#L4
-// To use stb_image, add this in *one* C++ source file.
-//     #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-// Define Some Constants
-const int mWidth = 1280;
-const int mHeight = 800;
+using namespace std;
+using namespace glm;
 
-#endif //~ Glitter Header
+// Define Some Constants
+const char* WINDOW_TITLE = "Magnus Effect";
+const int WINDOW_WIDTH = 1280;
+const int WINDOW_HEIGHT = 800;
