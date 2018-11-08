@@ -14,6 +14,21 @@ Transform::~Transform()
     delete model;
 }
 
+vec3 Transform::getPosition()
+{
+    return position;
+}
+
+mat4 Transform::getRotation()
+{
+    return rotation;
+}
+
+vec3 Transform::getSize()
+{
+    return size;
+}
+
 void Transform::setPosition(vec3 newPosition)
 {
     position = newPosition;

@@ -18,7 +18,10 @@ public:
      */
     virtual ~Transform();
 
-    // attribute setters
+    // attribute getters and setters
+    glm::vec3 getPosition();
+    glm::mat4 getRotation();
+    glm::vec3 getSize();
     void setPosition(glm::vec3 newPosition);
     void setRotation(glm::mat4 newRotation);
     void setSize(glm::vec3 newSize);

@@ -43,6 +43,7 @@ public:
         ball = new Rigidbody(new Model("Models/ball.blend"), 0.0027f);
         ball->setSize(vec3(0.04f));
         ball->setPosition(vec3(0, 1, 0));
+        ball->setLinearVelocity(vec3(1, 0, 0));
 
         run();
     }
@@ -115,6 +116,7 @@ private:
     void run()
     {
         // rendering loop
+        lastFrame = glfwGetTime();
         while (glfwWindowShouldClose(window) == false) {
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
@@ -145,6 +147,7 @@ private:
         camera->configure(shader);
         light->configure(shader);        
         plane->draw(shader);
+        ball->update(deltaTime);
         ball->draw(shader);
     }
 };
