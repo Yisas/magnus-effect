@@ -8,14 +8,14 @@ Light::Light(vec3 color)
 
 }
 
-void Light::move(vec3 newPos)
+void Light::setPosition(vec3 newPosition)
 {
-    pos = newPos;
+    position = newPosition;
 }
 
-void Light::setUp(Shader shader)
+void Light::configure(Shader* shader)
 {
-    shader.setVec3("lightColor", color);
-    shader.setVec3("lightPos", pos);
+    shader->setVec3("lightColor", color);
+    shader->setVec3("lightPosition", position);
 }
 

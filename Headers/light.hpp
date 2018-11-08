@@ -3,7 +3,6 @@
 #include "shader.hpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 class Light
 {
@@ -16,14 +15,14 @@ public:
     /**
      * Place the light at the new position.
      */
-    void move(glm::vec3 newPos);
+    void setPosition(glm::vec3 newPosition);
 
     /**
-     * Set up the light uniforms for rendering the scene with the given shader.
+     * Configure the light uniforms for rendering the scene with the given shader.
      */
-    void setUp(Shader shader);
+    void configure(Shader* shader);
 
 private:
     glm::vec3 color;
-    glm::vec3 pos = glm::vec3(0, 0, 0);
+    glm::vec3 position = glm::vec3(0, 0, 0);
 };

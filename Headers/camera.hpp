@@ -3,7 +3,6 @@
 #include "shader.hpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 class Camera
 {
@@ -14,20 +13,25 @@ public:
     Camera(int width, int height, int fov);
     
     /**
-     * Place the camera a the new position.
+     * Place the camera at the new position.
      */
-    void move(glm::vec3 newPos);
+    void setPosition(glm::vec3 newPosition);
 
     /**
-     * Set up the camera matrices for rendering the scene with the given shader.
+     * Point the camera at the new direction.
      */
-    void setUp(Shader shader);
+    void setDirection(glm::vec3 newDirection);
+
+    /**
+     * Configure the camera matrices for rendering the scene with the given shader.
+     */
+    void configure(Shader* shader);
 
 private:
     int width;
     int height;
     float fov;
-    glm::vec3 pos = glm::vec3(0, 0, 0);
-    glm::vec3 dir = glm::vec3(0, 0, 1);
+    glm::vec3 position = glm::vec3(0, 0, 0);
+    glm::vec3 direction = glm::vec3(0, 0, 1);
     glm::vec3 up = glm::vec3(0, 1, 0);
 };

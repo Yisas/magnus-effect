@@ -8,14 +8,20 @@ Camera::Camera(int width, int height, int fov)
 
 }
 
-void Camera::move(vec3 newPos)
+void Camera::setPosition(vec3 newPosition)
 {
-    pos = newPos;
+    position = newPosition;
 }
 
-void Camera::setUp(Shader shader)
+void Camera::setDirection(vec3 newDirection)
 {
-    shader.setVec3("viewPos", pos);
-    shader.setMat4("projection", perspective(radians(fov), (float)width / (float)height, 0.1f, 100.0f));
-    shader.setMat4("view", lookAt(pos, pos + dir, up));
+    direction = newDirection;
+}
+
+void Camera::configure(Shader* shader)
+{
+    shader->setVec3("viewPosition", position);
+    shader->setMat4("projection", perspective(radians(fov), (float)width / (float)height, 0.1f, 100.0f));
+    shader->setMat4("view", lookAt(position, position + direction, up));
+    shader->setMat4("model", mat4(1));
 }

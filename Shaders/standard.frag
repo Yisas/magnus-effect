@@ -1,14 +1,14 @@
 #version 330 core
-out vec4 FragColor;
+out vec4 fragmentColor;
 
-in vec2 TexCoords;
-in vec3 Normal;
-in vec3 FragPos;
+in vec2 textureCoordinates;
+in vec3 normal;
+in vec3 fragmentPosition;
 
-uniform sampler2D texture_diffuse;
+uniform sampler2D textureDiffuse;
 uniform vec3 lightColor;
-uniform vec3 lightPos;
-uniform vec3 viewPos;
+uniform vec3 lightPosition;
+uniform vec3 viewPosition;
 
 void main()
 {
@@ -17,18 +17,19 @@ void main()
     vec3 ambient = ambientStrength * lightColor;
   	
     // diffuse 
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
+    vec3 fragmentNormal = normalize(normal);
+    vec3 lightDirection = normalize(lightPosition - fragmentPosition);
+    float diffuseContribution = max(dot(fragmentNormal, lightDirection), 0.0);
+    vec3 diffuse = diffuseContribution * lightColor;
     
     // specular
     float specularStrength = 0.5;
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * lightColor;
+    vec3 viewDirection = normalize(viewPosition - fragmentPosition);
+    vec3 reflectionDirection = reflect(-lightDirection, fragmentNormal);  
+    float specularContribution = pow(max(dot(viewDirection, reflectionDirection), 0.0), 32);
+    vec3 specular = specularStrength * specularContribution * lightColor;
     
-    vec4 textureColor = texture(texture_diffuse, TexCoords);
-    FragColor = vec4((ambient + diffuse + specular), 1.0) * textureColor;
+    // color
+    vec4 textureColor = texture(textureDiffuse, textureCoordinates);
+    fragmentColor = vec4((ambient + diffuse + specular), 1.0) * textureColor;
 }

@@ -2,6 +2,8 @@
 #include "camera.hpp"
 #include "light.hpp"
 #include "model.hpp"
+#include "transform.hpp"
+#include "rigidbody.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -18,20 +20,30 @@ class MagnusEffect
 {
 public:
     /**
-     * Create an run the Magnus Effect OpenGL application.
+     * Create and run the Magnus Effect OpenGL application.
      */
     MagnusEffect(string title, int width, int height)
         : title(title), width(width), height(height)
     {
         initialize();
         
-        camera = new Camera(width, height, 45);
-        camera->move(vec3(0, 0, -10));
-        light = new Light(vec3(1, 1, 1));
-        light->move(vec3(0, 25, 0));
         shader = new Shader("Shaders/standard.vert", "Shaders/standard.frag");
-        ball = new Model("Models/ball.blend");
         
+        camera = new Camera(width, height, 45);
+        camera->setPosition(vec3(0, 1, -5));
+        camera->setDirection(vec3(0, 0, 1));
+        
+        light = new Light(vec3(1, 1, 1));
+        light->setPosition(vec3(0, 10, 0));
+        
+        plane = new Transform(new Model("Models/plane.blend"));
+        plane->setRotation(rotate(mat4(1), radians(-90.0f), vec3(1, 0, 0)));
+        plane->setSize(vec3(2.74f, 1.0f, 0.76f));
+        
+        ball = new Rigidbody(new Model("Models/ball.blend"), 0.0027f);
+        ball->setSize(vec3(0.04f));
+        ball->setPosition(vec3(0, 1, 0));
+
         run();
     }
 
@@ -42,6 +54,8 @@ public:
     {
         delete camera;
         delete shader;
+        delete light;
+        delete plane;
         delete ball;
         glfwTerminate();
     }
@@ -50,14 +64,15 @@ private:
     // window attributes
     GLFWwindow* window;
     string title;
-    int width;
-    int height;
+    int width, height;
+    float lastFrame, deltaTime;
 
     // rendering elements
     Shader* shader;
     Camera* camera;
     Light* light;
-    Model* ball;
+    Transform* plane;
+    Rigidbody* ball;
 
     /**
      * Initialize OpenGL and create the application window.
@@ -104,6 +119,10 @@ private:
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
 
+            float currentFrame = glfwGetTime();
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
+
             // background fill color
             glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -123,10 +142,10 @@ private:
     void draw(Shader* shader)
     {
         shader->use();
-        camera->setUp(*shader);
-        light->setUp(*shader);
-        shader->setMat4("model", mat4(1));
-        ball->draw(*shader);
+        camera->configure(shader);
+        light->configure(shader);        
+        plane->draw(shader);
+        ball->draw(shader);
     }
 };
 
