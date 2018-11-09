@@ -2,8 +2,11 @@
 
 #include <glm/gtc/quaternion.hpp>
 
-const glm::vec3 Rigidbody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
+const float Rigidbody::STATIC_THRESHOLD = 0.1f;
+const float Rigidbody::BOUNCE_LOSS_FACTOR = 2.0f;
 const float Rigidbody::GROUND_COORDINATE = 0;
+const glm::vec3 Rigidbody::GROUND_NORMAL = glm::vec3(0, 1, 0);
+const glm::vec3 Rigidbody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
 
 Rigidbody::Rigidbody(Model* model, float mass)
     : Transform(model), mass(mass)
@@ -78,6 +81,11 @@ void Rigidbody::checkCollision()
     if (position.y - scale.y <= GROUND_COORDINATE)
     {
         position.y = GROUND_COORDINATE + scale.y;
-        enabled = false;
+        linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) / BOUNCE_LOSS_FACTOR;
+        angularVelocity /= BOUNCE_LOSS_FACTOR;
+        if (glm::length(linearVelocity) < STATIC_THRESHOLD)
+        {
+            enabled = false;
+        }
     }
 }

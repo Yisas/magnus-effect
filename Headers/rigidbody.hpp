@@ -32,7 +32,10 @@ public:
     void update(float deltaTime);
 
 private:
+    const static float STATIC_THRESHOLD;
+    const static float BOUNCE_LOSS_FACTOR;
     const static float GROUND_COORDINATE;
+    const static glm::vec3 GROUND_NORMAL;
     const static glm::vec3 GRAVITY;
 
     float mass;
