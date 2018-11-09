@@ -14,36 +14,41 @@
 #include <iostream>
 
 using namespace std;
-using namespace glm;
 
 class MagnusEffect
 {
 public:
+    // Current instance of the Magnus Effect simulation
+    // This is used to access the object from static methods, such as event handlers.
+    static MagnusEffect* simulation;
+
     /**
      * Create and run the Magnus Effect OpenGL application.
      */
     MagnusEffect(string title, int width, int height)
         : title(title), width(width), height(height)
     {
+        simulation = this;
         initialize();
         
         shader = new Shader("Shaders/standard.vert", "Shaders/standard.frag");
         
         camera = new Camera(width, height, 45);
-        camera->setPosition(vec3(0, 1, -5));
-        camera->setDirection(vec3(0, 0, 1));
+        camera->setPosition(glm::vec3(0, 1, -5));
+        camera->setDirection(glm::vec3(0, 0, 1));
         
-        light = new Light(vec3(1, 1, 1));
-        light->setPosition(vec3(0, 10, 0));
+        light = new Light(glm::vec3(1, 1, 1));
+        light->setPosition(glm::vec3(0, 10, 0));
         
         plane = new Transform(new Model("Models/plane.blend"));
-        plane->setRotation(rotate(mat4(1), radians(-90.0f), vec3(1, 0, 0)));
-        plane->setSize(vec3(2.74f, 1.0f, 0.76f));
+        plane->setRotation(glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0)));
+        plane->setScale(glm::vec3(2.74f, 1.0f, 0.76f));
         
         ball = new Rigidbody(new Model("Models/ball.blend"), 0.0027f);
-        ball->setSize(vec3(0.04f));
-        ball->setPosition(vec3(0, 1, 0));
-        ball->setLinearVelocity(vec3(1, 0, 0));
+        ball->setScale(glm::vec3(0.04f));
+        ball->setPosition(glm::vec3(-1, 1, 0));
+        ball->setLinearVelocity(glm::vec3(3, 3, 0));
+        ball->setAngularVelocity(glm::vec3(0, 0, -20));
 
         run();
     }
@@ -61,12 +66,22 @@ public:
         glfwTerminate();
     }
 
+    /**
+     * Reset the positions and velocites of the rigid bodies in the scene.
+     */
+    void reset()
+    {
+        cout << "Resetting simulation" << endl;
+        ball->reset();
+    }
+
 private:
     // window attributes
     GLFWwindow* window;
     string title;
     int width, height;
     float lastFrame, deltaTime;
+    float speed = 1;
 
     // rendering elements
     Shader* shader;
@@ -97,6 +112,7 @@ private:
             exit(EXIT_FAILURE);
         }
         glfwMakeContextCurrent(window);
+        glfwSetKeyCallback(window, keyCallback);
         
         // glad: load all OpenGL function pointers
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -111,6 +127,19 @@ private:
     }
 
     /**
+     * Draw the scene with the given shader.
+     */
+    void draw(Shader* shader)
+    {
+        shader->use();
+        camera->configure(shader);
+        light->configure(shader);        
+        plane->draw(shader);
+        ball->update(deltaTime);
+        ball->draw(shader);
+    }
+
+    /**
      * Run the application main loop.
      */
     void run()
@@ -118,11 +147,8 @@ private:
         // rendering loop
         lastFrame = glfwGetTime();
         while (glfwWindowShouldClose(window) == false) {
-            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-                glfwSetWindowShouldClose(window, true);
-
             float currentFrame = glfwGetTime();
-            deltaTime = currentFrame - lastFrame;
+            deltaTime = (currentFrame - lastFrame) * speed;
             lastFrame = currentFrame;
 
             // background fill color
@@ -139,18 +165,18 @@ private:
     }
 
     /**
-     * Draw the scene with the given shader.
+     * Key callback event handler.
      */
-    void draw(Shader* shader)
+    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
     {
-        shader->use();
-        camera->configure(shader);
-        light->configure(shader);        
-        plane->draw(shader);
-        ball->update(deltaTime);
-        ball->draw(shader);
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+        else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+            simulation->reset();
     }
 };
+
+MagnusEffect* MagnusEffect::simulation = nullptr;
 
 
 /**

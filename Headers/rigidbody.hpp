@@ -12,13 +12,19 @@ public:
      */
     Rigidbody(Model* model, float mass);
 
-    // attribute setters
+    // attribute getters and setters
+    glm::vec3 getLinearVelocity() const;
+    glm::vec3 getAngularVelocity() const;
     void setLinearVelocity(glm::vec3 newLinearVelocity);
+    void setAngularVelocity(glm::vec3 newAngularVelocity);
+    void setPosition(glm::vec3 newPosition) override;
+    void setRotation(glm::mat3 newRotation) override;
+    void setScale(glm::vec3 newScale) override;
 
     /**
-     * Subject the rigid body to gravitational force.
+     * Reset the rigid body to its initial positions and velocities.
      */
-    void addGravity();
+    void reset();
 
     /**
      * Update the rigid body attributes for the given time interval.
@@ -26,10 +32,23 @@ public:
     void update(float deltaTime);
 
 private:
+    const static float GROUND_COORDINATE;
     const static glm::vec3 GRAVITY;
 
     float mass;
-    std::vector<glm::vec3> constantForces;
+    bool enabled = true;
+    
+    glm::vec3 initialPosition = glm::vec3(0, 0, 0);
+    glm::mat3 initialRotation = glm::mat3(1);
+    glm::vec3 initialScale = glm::vec3(0, 0, 0);
+    glm::vec3 initialLinearVelocity = glm::vec3(0, 0, 0);
+    glm::vec3 initialAngularVelocity = glm::vec3(0, 0, 0);
+
     glm::vec3 linearVelocity = glm::vec3(0, 0, 0);
     glm::vec3 angularVelocity = glm::vec3(0, 0, 0);
+
+    /**
+     * Check if the rigid body collides with the ground.
+     */
+    void checkCollision();
 };

@@ -1,14 +1,12 @@
 #include "light.hpp"
 
-using namespace glm;
-
-Light::Light(vec3 color)
+Light::Light(glm::vec3 color)
     : color(color)
 {
 
 }
 
-void Light::setPosition(vec3 newPosition)
+void Light::setPosition(glm::vec3 newPosition)
 {
     position = newPosition;
 }

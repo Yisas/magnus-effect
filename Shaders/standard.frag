@@ -13,7 +13,7 @@ uniform vec3 viewPosition;
 void main()
 {
     // ambient
-    float ambientStrength = 0.1;
+    float ambientStrength = 0.15;
     vec3 ambient = ambientStrength * lightColor;
   	
     // diffuse 

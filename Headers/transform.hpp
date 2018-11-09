@@ -19,21 +19,23 @@ public:
     virtual ~Transform();
 
     // attribute getters and setters
-    glm::vec3 getPosition();
-    glm::mat4 getRotation();
-    glm::vec3 getSize();
-    void setPosition(glm::vec3 newPosition);
-    void setRotation(glm::mat4 newRotation);
-    void setSize(glm::vec3 newSize);
+    glm::vec3 getPosition() const;
+    glm::mat3 getRotation() const;
+    glm::vec3 getScale() const;
+    virtual void setPosition(glm::vec3 newPosition);
+    virtual void setRotation(glm::mat3 newRotation);
+    virtual void setScale(glm::vec3 newScale);
 
     /**
      * Draw the transform model using the given shader.
      */
     void draw(Shader* shader);
 
+protected:
+    glm::vec3 position = glm::vec3(0, 0, 0);
+    glm::mat3 rotation = glm::mat3(1);
+    glm::vec3 scale = glm::vec3(1, 1, 1);
+
 private:
     Model* model;
-    glm::vec3 position = glm::vec3(0, 0, 0);
-    glm::mat4 rotation = glm::mat4(1);
-    glm::vec3 size = glm::vec3(1, 1, 1);
 };

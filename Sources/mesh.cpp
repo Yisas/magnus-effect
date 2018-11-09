@@ -5,7 +5,6 @@
 #include <sstream>
 
 using namespace std;
-using namespace glm;
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
 {
