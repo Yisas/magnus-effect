@@ -1,7 +1,7 @@
 #pragma once
 
-#include "shader.hpp"
-#include "mesh.hpp"
+#include "shader.h"
+#include "mesh.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>

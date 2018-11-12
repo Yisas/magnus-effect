@@ -1,4 +1,4 @@
-#include "transform.hpp"
+#include "transform.h"
 
 Transform::Transform(Model* model)
     : model(model)
@@ -11,19 +11,24 @@ Transform::~Transform()
     delete model;
 }
 
+glm::vec3 Transform::getScale() const
+{
+    return scale;
+}
+
 glm::vec3 Transform::getPosition() const
 {
     return position;
 }
 
-glm::mat3 Transform::getRotation() const
+glm::quat Transform::getRotation() const
 {
     return rotation;
 }
 
-glm::vec3 Transform::getScale() const
+void Transform::setScale(glm::vec3 newScale)
 {
-    return scale;
+    scale = newScale;
 }
 
 void Transform::setPosition(glm::vec3 newPosition)
@@ -31,14 +36,9 @@ void Transform::setPosition(glm::vec3 newPosition)
     position = newPosition;
 }
 
-void Transform::setRotation(glm::mat3 newRotation)
+void Transform::setRotation(glm::quat newRotation)
 {
     rotation = newRotation;
-}
-
-void Transform::setScale(glm::vec3 newScale)
-{
-    scale = newScale;
 }
 
 void Transform::draw(Shader* shader)

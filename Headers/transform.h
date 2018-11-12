@@ -1,7 +1,7 @@
 #pragma once
 
-#include "shader.hpp"
-#include "model.hpp"
+#include "shader.h"
+#include "model.h"
 
 #include <glm/glm.hpp>
 
@@ -19,12 +19,12 @@ public:
     virtual ~Transform();
 
     // attribute getters and setters
-    glm::vec3 getPosition() const;
-    glm::mat3 getRotation() const;
     glm::vec3 getScale() const;
-    virtual void setPosition(glm::vec3 newPosition);
-    virtual void setRotation(glm::mat3 newRotation);
+    glm::vec3 getPosition() const;
+    glm::quat getRotation() const;
     virtual void setScale(glm::vec3 newScale);
+    virtual void setPosition(glm::vec3 newPosition);
+    virtual void setRotation(glm::quat newRotation);
 
     /**
      * Draw the transform model using the given shader.
@@ -33,7 +33,7 @@ public:
 
 protected:
     glm::vec3 position = glm::vec3(0, 0, 0);
-    glm::mat3 rotation = glm::mat3(1);
+    glm::quat rotation = glm::mat3(1);
     glm::vec3 scale = glm::vec3(1, 1, 1);
 
 private:

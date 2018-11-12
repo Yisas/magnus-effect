@@ -1,9 +1,9 @@
-﻿#include "shader.hpp"
-#include "camera.hpp"
-#include "light.hpp"
-#include "model.hpp"
-#include "transform.hpp"
-#include "rigidbody.hpp"
+﻿#include "shader.h"
+#include "camera.h"
+#include "light.h"
+#include "model.h"
+#include "transform.h"
+#include "rigidbody.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -31,7 +31,7 @@ public:
         simulation = this;
         initialize();
         
-        shader = new Shader("Shaders/standard.vert", "Shaders/standard.frag");
+        shader = new Shader("Shaders/scene.vert", "Shaders/scene.frag");
         
         camera = new Camera(width, height, 45);
         camera->setPosition(glm::vec3(0, 1, -5));
@@ -44,11 +44,11 @@ public:
         plane->setRotation(glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0)));
         plane->setScale(glm::vec3(2.74f, 1.0f, 0.76f));
         
-        ball = new Rigidbody(new Model("Models/ball.blend"), 0.0027f);
+        ball = new Rigidbody(new Model("Models/ball.blend"), 0.0027f, 0.75f);
         ball->setScale(glm::vec3(0.04f));
-        ball->setPosition(glm::vec3(-1, 1, 0));
+        ball->setPosition(glm::vec3(-2, 1, 0));
         ball->setLinearVelocity(glm::vec3(3, 3, 0));
-        ball->setAngularVelocity(glm::vec3(0, 0, -20));
+        ball->setAngularVelocity(glm::vec3(0, 0, 5));
 
         run();
     }

@@ -1,4 +1,4 @@
-#include "light.hpp"
+#include "light.h"
 
 Light::Light(glm::vec3 color)
     : color(color)

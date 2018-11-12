@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader.hpp"
+#include "shader.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>

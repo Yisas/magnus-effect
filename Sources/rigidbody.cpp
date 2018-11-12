@@ -1,15 +1,13 @@
-#include "rigidbody.hpp"
+#include "rigidbody.h"
 
 #include <glm/gtc/quaternion.hpp>
 
-const float Rigidbody::STATIC_THRESHOLD = 0.1f;
-const float Rigidbody::BOUNCE_LOSS_FACTOR = 2.0f;
 const float Rigidbody::GROUND_COORDINATE = 0;
 const glm::vec3 Rigidbody::GROUND_NORMAL = glm::vec3(0, 1, 0);
 const glm::vec3 Rigidbody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
 
-Rigidbody::Rigidbody(Model* model, float mass)
-    : Transform(model), mass(mass)
+Rigidbody::Rigidbody(Model* model, float mass, float bounciness)
+    : Transform(model), mass(mass), bounciness(bounciness)
 {
 
 }
@@ -42,38 +40,27 @@ void Rigidbody::setPosition(glm::vec3 newPosition)
     initialPosition = newPosition;
 }
 
-void Rigidbody::setRotation(glm::mat3 newRotation)
+void Rigidbody::setRotation(glm::quat newRotation)
 {
     Transform::setRotation(newRotation);
     initialRotation = newRotation;
 }
 
-void Rigidbody::setScale(glm::vec3 newScale)
-{
-    Transform::setScale(newScale);
-    initialScale = newScale;
-}
-
 void Rigidbody::reset()
 {
-    enabled = true;
     position = initialPosition;
     rotation = initialRotation;
-    scale = initialScale;
     linearVelocity = initialLinearVelocity;
     angularVelocity = initialAngularVelocity;
 }
 
 void Rigidbody::update(float deltaTime)
 {
-    if (enabled)
-    {
-        glm::vec3 force = mass * GRAVITY;
-        linearVelocity += force / mass * deltaTime;
-        position += linearVelocity * deltaTime;
-        rotation = glm::mat3(glm::quat(rotation) * glm::quat(angularVelocity * deltaTime));
-        checkCollision();
-    }
+    glm::vec3 force = mass * GRAVITY;
+    linearVelocity += force / mass * deltaTime;
+    position += linearVelocity * deltaTime;
+    rotation *= glm::quat(angularVelocity * (float)(2 * M_PI) * deltaTime);
+    checkCollision();
 }
 
 void Rigidbody::checkCollision()
@@ -81,11 +68,7 @@ void Rigidbody::checkCollision()
     if (position.y - scale.y <= GROUND_COORDINATE)
     {
         position.y = GROUND_COORDINATE + scale.y;
-        linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) / BOUNCE_LOSS_FACTOR;
-        angularVelocity /= BOUNCE_LOSS_FACTOR;
-        if (glm::length(linearVelocity) < STATIC_THRESHOLD)
-        {
-            enabled = false;
-        }
+        linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) * bounciness;
+        angularVelocity *= bounciness;
     }
 }

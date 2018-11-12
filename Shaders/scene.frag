@@ -1,14 +1,14 @@
 #version 330 core
 out vec4 fragmentColor;
 
-in vec2 textureCoordinates;
 in vec3 normal;
 in vec3 fragmentPosition;
+in vec2 textureCoordinates;
 
 uniform sampler2D textureDiffuse;
+uniform vec3 viewPosition;
 uniform vec3 lightColor;
 uniform vec3 lightPosition;
-uniform vec3 viewPosition;
 
 void main()
 {
@@ -31,5 +31,6 @@ void main()
     
     // color
     vec4 textureColor = texture(textureDiffuse, textureCoordinates);
-    fragmentColor = vec4((ambient + diffuse + specular), 1.0) * textureColor;
+    vec3 lighting = ambient + diffuse + specular;
+    fragmentColor = textureColor * vec4(lighting, 1.0);
 }

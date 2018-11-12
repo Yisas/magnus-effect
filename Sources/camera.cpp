@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "camera.h"
 
 Camera::Camera(int width, int height, int fov)
     : width(width), height(height), fov(fov)
