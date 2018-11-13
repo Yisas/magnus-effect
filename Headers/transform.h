@@ -32,10 +32,8 @@ public:
     void draw(Shader* shader);
 
 protected:
+    Model* model;
     glm::vec3 position = glm::vec3(0, 0, 0);
     glm::quat rotation = glm::mat3(1);
     glm::vec3 scale = glm::vec3(1, 1, 1);
-
-private:
-    Model* model;
 };

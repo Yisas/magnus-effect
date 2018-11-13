@@ -48,7 +48,7 @@ public:
         ball->setScale(glm::vec3(0.04f));
         ball->setPosition(glm::vec3(-2, 1, 0));
         ball->setLinearVelocity(glm::vec3(3, 3, 0));
-        ball->setAngularVelocity(glm::vec3(0, 0, 5));
+        ball->setAngularVelocity(glm::vec3(0, 0, -6.28f));
 
         run();
     }
