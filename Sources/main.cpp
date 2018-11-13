@@ -5,6 +5,7 @@
 #include "transform.h"
 #include "rigidbody.h"
 
+#include <nanogui/nanogui.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -13,6 +14,7 @@
 #include <cstdlib>
 #include <iostream>
 
+using namespace nanogui;
 using namespace std;
 
 class MagnusEffect
@@ -30,6 +32,13 @@ public:
     {
         simulation = this;
         initialize();
+
+        screen = new Screen();
+        screen->initialize(window, true);
+        FormHelper *gui = new FormHelper(screen);
+        nanogui::ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Controls");
+        screen->setVisible(true);
+        screen->performLayout();
         
         shader = new Shader("Shaders/scene.vert", "Shaders/scene.frag");
         
@@ -58,6 +67,7 @@ public:
      */
     ~MagnusEffect()
     {
+        delete screen;
         delete camera;
         delete shader;
         delete light;
@@ -78,6 +88,7 @@ public:
 private:
     // window attributes
     GLFWwindow* window;
+    Screen* screen;
     string title;
     int width, height;
     float lastFrame, deltaTime;
@@ -157,6 +168,9 @@ private:
 
             // draw scene
             draw(shader);
+
+            screen->drawContents();
+            screen->drawWidgets();
 
             // flip buffers and draw
             glfwSwapBuffers(window);
