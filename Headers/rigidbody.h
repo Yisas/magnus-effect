@@ -7,20 +7,23 @@
 class RigidBody : public Transform
 {
 public:
+    static bool useGravity;
+    static bool useMagnusForce;
+
+    // properties
+    float mass;
+    float bounciness;
+
+    // initial conditions
+    glm::vec3 initialPosition = glm::vec3(0, 0, 0);
+    glm::quat initialRotation = glm::mat3(1);
+    glm::vec3 initialLinearVelocity = glm::vec3(0, 0, 0);
+    glm::vec3 initialAngularVelocity = glm::vec3(0, 0, 0);
+
     /**
      * Create a new rigid body for the given model.
      */
     RigidBody(Model* model, float mass, float bounciness);
-
-    // attribute getters and setters
-    glm::vec3 getLinearVelocity() const;
-    glm::vec3 getAngularVelocity() const;
-    void setLinearVelocity(glm::vec3 newLinearVelocity);
-    void setAngularVelocity(glm::vec3 newAngularVelocity);
-    void setPosition(glm::vec3 newPosition) override;
-    void setRotation(glm::quat newRotation) override;
-    void setMass(float newMass);
-    void setBounciness(float newBounciness);
 
     /**
      * Reset the rigid body to its initial positions and velocities.
@@ -37,17 +40,9 @@ private:
     const static glm::vec3 GROUND_NORMAL;
     const static glm::vec3 GRAVITY;
     
-    float bounciness;
-    float mass;
     glm::vec3 centerOfMass;
     glm::mat3 bodySpaceInertiaTensor;
     glm::mat3 bodySpaceInertiaTensorInverse;
-
-    // initial conditions    
-    glm::vec3 initialPosition = glm::vec3(0, 0, 0);
-    glm::quat initialRotation = glm::mat3(1);
-    glm::vec3 initialLinearVelocity = glm::vec3(0, 0, 0);
-    glm::vec3 initialAngularVelocity = glm::vec3(0, 0, 0);
 
     // current state
     // the current position and rotation are part of transform, the parent class

@@ -6,6 +6,9 @@
 
 using namespace std;
 
+bool RigidBody::useGravity = true;
+bool RigidBody::useMagnusForce = false;
+
 const float RigidBody::GROUND_COORDINATE = 0;
 const glm::vec3 RigidBody::GROUND_NORMAL = glm::vec3(0, 1, 0);
 const glm::vec3 RigidBody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
@@ -16,51 +19,6 @@ RigidBody::RigidBody(Model* model, float mass, float bounciness)
     centerOfMass = glm::vec3(0, 0, 0);
     bodySpaceInertiaTensor = glm::mat3(1); // TODO: replace with actual sphere inertia tensor
     bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
-}
-
-glm::vec3 RigidBody::getLinearVelocity() const
-{
-    return linearVelocity;
-}
-
-glm::vec3 RigidBody::getAngularVelocity() const
-{
-    return angularVelocity;
-}
-
-void RigidBody::setLinearVelocity(glm::vec3 newLinearVelocity)
-{
-    initialLinearVelocity = newLinearVelocity;
-    linearVelocity = newLinearVelocity;
-}
-
-void RigidBody::setAngularVelocity(glm::vec3 newAngularVelocity)
-{
-    initialAngularVelocity = newAngularVelocity;
-    angularVelocity = newAngularVelocity;
-    angularMomentum = bodySpaceInertiaTensor * angularVelocity;
-}
-
-void RigidBody::setPosition(glm::vec3 newPosition)
-{
-    Transform::setPosition(newPosition);
-    initialPosition = newPosition;
-}
-
-void RigidBody::setRotation(glm::quat newRotation)
-{
-    Transform::setRotation(newRotation);
-    initialRotation = newRotation;
-}
-
-void RigidBody::setMass(float newMass)
-{
-    mass = newMass;
-}
-
-void RigidBody::setBounciness(float newBounciness)
-{
-    bounciness = newBounciness;
 }
 
 void RigidBody::reset()
@@ -75,7 +33,10 @@ void RigidBody::reset()
 void RigidBody::update(float deltaTime)
 {
     // forces
-    addForce(mass * GRAVITY, centerOfMass);
+    if (useGravity)
+        addForce(mass * GRAVITY, centerOfMass);
+    if (useMagnusForce)
+        addForce(glm::vec3(0), centerOfMass); // TODO: replace with actual formula
     glm::vec3 force = calculateResultingForce();
     
     // linear displacement
