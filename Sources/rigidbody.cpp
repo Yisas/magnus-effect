@@ -6,11 +6,11 @@
 
 using namespace std;
 
-const float Rigidbody::GROUND_COORDINATE = 0;
-const glm::vec3 Rigidbody::GROUND_NORMAL = glm::vec3(0, 1, 0);
-const glm::vec3 Rigidbody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
+const float RigidBody::GROUND_COORDINATE = 0;
+const glm::vec3 RigidBody::GROUND_NORMAL = glm::vec3(0, 1, 0);
+const glm::vec3 RigidBody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
 
-Rigidbody::Rigidbody(Model* model, float mass, float bounciness)
+RigidBody::RigidBody(Model* model, float mass, float bounciness)
     : Transform(model), mass(mass), bounciness(bounciness)
 {
     centerOfMass = glm::vec3(0, 0, 0);
@@ -18,52 +18,52 @@ Rigidbody::Rigidbody(Model* model, float mass, float bounciness)
     bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
 }
 
-glm::vec3 Rigidbody::getLinearVelocity() const
+glm::vec3 RigidBody::getLinearVelocity() const
 {
     return linearVelocity;
 }
 
-glm::vec3 Rigidbody::getAngularVelocity() const
+glm::vec3 RigidBody::getAngularVelocity() const
 {
     return angularVelocity;
 }
 
-void Rigidbody::setLinearVelocity(glm::vec3 newLinearVelocity)
+void RigidBody::setLinearVelocity(glm::vec3 newLinearVelocity)
 {
     initialLinearVelocity = newLinearVelocity;
     linearVelocity = newLinearVelocity;
 }
 
-void Rigidbody::setAngularVelocity(glm::vec3 newAngularVelocity)
+void RigidBody::setAngularVelocity(glm::vec3 newAngularVelocity)
 {
     initialAngularVelocity = newAngularVelocity;
     angularVelocity = newAngularVelocity;
     angularMomentum = bodySpaceInertiaTensor * angularVelocity;
 }
 
-void Rigidbody::setPosition(glm::vec3 newPosition)
+void RigidBody::setPosition(glm::vec3 newPosition)
 {
     Transform::setPosition(newPosition);
     initialPosition = newPosition;
 }
 
-void Rigidbody::setRotation(glm::quat newRotation)
+void RigidBody::setRotation(glm::quat newRotation)
 {
     Transform::setRotation(newRotation);
     initialRotation = newRotation;
 }
 
-void Rigidbody::setMass(float newMass)
+void RigidBody::setMass(float newMass)
 {
     mass = newMass;
 }
 
-void Rigidbody::setBounciness(float newBounciness)
+void RigidBody::setBounciness(float newBounciness)
 {
     bounciness = newBounciness;
 }
 
-void Rigidbody::reset()
+void RigidBody::reset()
 {
     position = initialPosition;
     rotation = initialRotation;
@@ -72,7 +72,7 @@ void Rigidbody::reset()
     angularMomentum = bodySpaceInertiaTensor * angularVelocity;
 }
 
-void Rigidbody::update(float deltaTime)
+void RigidBody::update(float deltaTime)
 {
     // forces
     addForce(mass * GRAVITY, centerOfMass);
@@ -96,12 +96,12 @@ void Rigidbody::update(float deltaTime)
     checkCollision();
 }
 
-void Rigidbody::addForce(glm::vec3 force, glm::vec3 position)
+void RigidBody::addForce(glm::vec3 force, glm::vec3 position)
 {
     forces.push_back(pair<glm::vec3, glm::vec3>(force, position));
 }
 
-glm::vec3 Rigidbody::calculateResultingForce()
+glm::vec3 RigidBody::calculateResultingForce()
 {
     glm::vec3 resultingForce = glm::vec3(0);
     for (pair<glm::vec3, glm::vec3> force : forces)
@@ -111,7 +111,7 @@ glm::vec3 Rigidbody::calculateResultingForce()
     return resultingForce;
 }
 
-glm::vec3 Rigidbody::calculateTorque()
+glm::vec3 RigidBody::calculateTorque()
 {
     glm::vec3 torque = glm::vec3(0);
     for (pair<glm::vec3, glm::vec3> force : forces)
@@ -121,7 +121,7 @@ glm::vec3 Rigidbody::calculateTorque()
     return torque;
 }
 
-void Rigidbody::checkCollision()
+void RigidBody::checkCollision()
 {
     if (position.y - scale.y <= GROUND_COORDINATE)
     {

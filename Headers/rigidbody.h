@@ -4,13 +4,13 @@
 
 #include <vector>
 
-class Rigidbody : public Transform
+class RigidBody : public Transform
 {
 public:
     /**
      * Create a new rigid body for the given model.
      */
-    Rigidbody(Model* model, float mass, float bounciness);
+    RigidBody(Model* model, float mass, float bounciness);
 
     // attribute getters and setters
     glm::vec3 getLinearVelocity() const;
