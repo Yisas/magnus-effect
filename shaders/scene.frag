@@ -5,10 +5,11 @@ in vec3 normal;
 in vec3 fragmentPosition;
 in vec2 textureCoordinates;
 
-uniform sampler2D textureDiffuse;
 uniform vec3 viewPosition;
 uniform vec3 lightColor;
 uniform vec3 lightPosition;
+
+uniform sampler2D textureDiffuse1;
 
 void main()
 {
@@ -30,7 +31,7 @@ void main()
     vec3 specular = specularStrength * specularContribution * lightColor;
     
     // color
-    vec4 textureColor = texture(textureDiffuse, textureCoordinates);
+    vec3 textureColor = texture(textureDiffuse1, textureCoordinates).rgb;
     vec3 lighting = ambient + diffuse + specular;
-    fragmentColor = textureColor * vec4(lighting, 1.0);
+    fragmentColor = vec4(textureColor * lighting, 1.0);
 }

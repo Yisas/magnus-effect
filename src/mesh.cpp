@@ -32,16 +32,16 @@ void Mesh::draw(Shader shader)
         // retrieve texture number (the N in diffuse_textureN)
         string number;
         string name = textures[i].type;
-        if(name == "texture_diffuse")
+        if(name == "textureDiffuse")
             number = to_string(diffuseNr++);
-        else if(name == "texture_specular")
+        else if(name == "textureSpecular")
             number = to_string(specularNr++); // transfer unsigned int to stream
-        else if(name == "texture_normal")
+        else if(name == "textureNormal")
             number = to_string(normalNr++); // transfer unsigned int to stream
-            else if(name == "texture_height")
+            else if(name == "textureHeight")
             number = to_string(heightNr++); // transfer unsigned int to stream
 
-                                                    // now set the sampler to the correct texture unit
+        // now set the sampler to the correct texture unit
         glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
