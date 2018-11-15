@@ -31,15 +31,15 @@ else()
 endif()
 
 include_directories(Headers/
-                    Vendor/assimp/include/
-                    Vendor/glad/include/
                     Vendor/glm/
                     Vendor/stb/
+                    Vendor/assimp/include/
                     Vendor/nanogui/include
+                    Vendor/nanogui/ext/glad/include/
                     ${NANOGUI_EXTRA_INCS}
                     ${MYPROJ_EIGEN3_INCLUDE_DIR})
 
-file(GLOB VENDORS_SOURCES Vendor/glad/src/glad.c)
+file(GLOB VENDORS_SOURCES Vendor/nanogui/ext/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Headers/*.h)
 file(GLOB PROJECT_SOURCES Sources/*.cpp)
 file(GLOB PROJECT_SHADERS Shaders/*.comp
@@ -67,9 +67,7 @@ add_executable(${PROJECT_NAME}
                ${PROJECT_CONFIGS}
                ${VENDORS_SOURCES})
 target_link_libraries(${PROJECT_NAME}
-                      nanogui
-                      ${NANOGUI_EXTRA_LIBS}
-                      ${GLAD_LIBRARIES}
+                      nanogui ${NANOGUI_EXTRA_LIBS}
                       assimp)
 set_target_properties(${PROJECT_NAME}
                       PROPERTIES
