@@ -5,6 +5,7 @@
 #include "transform.h"
 #include "rigidbody.h"
 #include "scene.h"
+#include "trace.h"
 
 #include <nanogui/nanogui.h>
 
@@ -28,6 +29,7 @@ Slider* speedSlider;
 Button* resetButton;
 Button* playButton;
 Scene* scene;
+Trace* trace;
 
 /**
  * Initialize OpenGL and create the application window.
@@ -39,8 +41,8 @@ void createWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
     
     // glfw window creation
     window = glfwCreateWindow(width, height, TITLE.c_str(), nullptr, nullptr);
@@ -59,9 +61,6 @@ void createWindow()
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-    
-    // configure global opengl state
-    glEnable(GL_DEPTH_TEST);
 }
 
 /**
@@ -82,7 +81,7 @@ nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
         nanogui::ref<Label> label = new Label(vectorBox, axis);
         nanogui::ref<FloatBox<float>> box = new FloatBox<float>(vectorBox);
         box->setEditable(true);
-        box->setFixedSize(Vector2i(60, 20));
+        box->setFixedSize(Vector2i(50, 20));
         box->setFontSize(16);
         box->setAlignment(TextBox::Alignment::Right);
         if (axis == "x")
@@ -141,7 +140,7 @@ void createGUI()
 
     gui->addGroup("Rendering");
     gui->addVariable("Trace trajectory", traceTrajectory);
-    gui->addVariable("Previous trajectory", keepPreviousTrajectory);
+    gui->addVariable("Keep previous", keepPreviousTrajectory);
 
     gui->addGroup("Controls");
     speedBox = gui->addVariable("Playback speed", playbackSpeed);
@@ -156,11 +155,12 @@ void createGUI()
         playbackSpeed = value;
         speedBox->setValue(value);
     });
-    gui->addWidget("", speedSlider);
+    gui->addWidget(" ", speedSlider);
     resetButton = gui->addButton("Reset", []() {
         playing = false;
         playButton->setCaption("Play");
         scene->reset();
+        trace->reset();
     });
     playButton = gui->addButton("Play", []() {
         playing = !playing;
@@ -244,6 +244,9 @@ void createScene()
     scene->dynamicObjects.push_back(ball);
 
     scene->reset();
+
+    Shader* traceShader = new Shader("shaders/trace.vert", "shaders/trace.frag");
+    trace = new Trace(traceShader, camera, ball);
 }
 
 /**
@@ -258,18 +261,26 @@ void run()
         deltaTime = (currentFrame - lastFrame) * playbackSpeed;
         lastFrame = currentFrame;
 
-        // background fill color
+        // clear frame
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
+        glEnable(GL_MULTISAMPLE);
 
         // draw scene
         if (playing)
         {
             scene->update(deltaTime);
+            trace->update();
         }
         scene->draw();
+        if (traceTrajectory)
+        {
+            trace->draw();
+        }
 
+        // draw GUI
         screen->drawContents();
         screen->drawWidgets();
 
@@ -290,6 +301,7 @@ int main()
     createGUI();
     run();
 
+    delete trace;
     delete scene;
     delete screen;
     delete resetButton;
