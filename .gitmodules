@@ -1,12 +1,12 @@
-[submodule "Vendor/nanogui"]
-	path = Vendor/nanogui
+[submodule "vendor/nanogui"]
+	path = vendor/nanogui
 	url = https://github.com/wjakob/nanogui
-[submodule "Vendor/glm"]
-	path = Vendor/glm
+[submodule "vendor/glm"]
+	path = vendor/glm
 	url = https://github.com/g-truc/glm
-[submodule "Vendor/stb"]
-	path = Vendor/stb
+[submodule "vendor/stb"]
+	path = vendor/stb
 	url = https://github.com/nothings/stb
-[submodule "Vendor/assimp"]
-	path = Vendor/assimp
+[submodule "vendor/assimp"]
+	path = vendor/assimp
 	url = https://github.com/assimp/assimp

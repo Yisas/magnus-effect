@@ -223,7 +223,7 @@ void createGUI()
  */
 void createScene()
 {
-    Shader* shader = new Shader("Shaders/scene.vert", "Shaders/scene.frag");
+    Shader* shader = new Shader("shaders/scene.vert", "shaders/scene.frag");
     Camera* camera = new Camera(width, height, 45);
     camera->setPosition(glm::vec3(0, 1, -5));
     camera->setDirection(glm::vec3(0, 0, 1));
@@ -231,12 +231,12 @@ void createScene()
     light->setPosition(glm::vec3(0, 10, 0));
     scene = new Scene(shader, camera, light);
     
-    Transform* plane = new Transform(new Model("Models/plane.blend"));
+    Transform* plane = new Transform(new Model("models/plane.blend"));
     plane->rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
     plane->scale = glm::vec3(2.74f, 1.0f, 0.76f);
     scene->staticObjects.push_back(plane);
     
-    RigidBody* ball = new RigidBody(new Model("Models/ball.blend"), 0.0027f, 0.75f);
+    RigidBody* ball = new RigidBody(new Model("models/ball.blend"), 0.0027f, 0.75f);
     ball->scale = glm::vec3(0.04f);
     ball->initialPosition = glm::vec3(-2, 1, 0);
     ball->initialLinearVelocity = glm::vec3(3, 3, 0);

@@ -14,12 +14,12 @@ set(NANOGUI_EIGEN_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR} CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
 set(NANOGUI_INSTALL       OFF CACHE BOOL " " FORCE)
-add_subdirectory(Vendor/nanogui/)
+add_subdirectory(vendor/nanogui/)
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
-add_subdirectory(Vendor/assimp)
+add_subdirectory(vendor/assimp)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -30,22 +30,21 @@ else()
     endif()
 endif()
 
-include_directories(Headers/
-                    Vendor/glm/
-                    Vendor/stb/
-                    Vendor/assimp/include/
-                    Vendor/nanogui/include
-                    Vendor/nanogui/ext/glad/include/
+include_directories(vendor/glm/
+                    vendor/stb/
+                    vendor/assimp/include/
+                    vendor/nanogui/include
+                    vendor/nanogui/ext/glad/include/
                     ${NANOGUI_EXTRA_INCS}
                     ${MYPROJ_EIGEN3_INCLUDE_DIR})
 
-file(GLOB VENDORS_SOURCES Vendor/nanogui/ext/glad/src/glad.c)
-file(GLOB PROJECT_HEADERS Headers/*.h)
-file(GLOB PROJECT_SOURCES Sources/*.cpp)
-file(GLOB PROJECT_SHADERS Shaders/*.comp
-                          Shaders/*.frag
-                          Shaders/*.geom
-                          Shaders/*.vert)
+file(GLOB VENDORS_SOURCES vendor/nanogui/ext/glad/src/glad.c)
+file(GLOB PROJECT_HEADERS src/*.h)
+file(GLOB PROJECT_SOURCES src/*.cpp)
+file(GLOB PROJECT_SHADERS shaders/*.comp
+                          shaders/*.frag
+                          shaders/*.geom
+                          shaders/*.vert)
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
                           README.md
                          .gitattributes
