@@ -14,9 +14,15 @@ git clone --recursive https://github.com/proulxsamuel/magnus-effect
 cd magnus-effect
 ```
 
-Note that `--recursive` is required in order the clone the submodule repositories which provide the required dependencies. Alternatively, if the project repository is already cloned, initialize the submodules:
+Note that the `--recursive` flag is required in order the clone the submodule repositories which provide the required dependencies. Alternatively, if the project repository is already cloned, initialize the submodules:
 ```
 git submodule update --init --recursive
+```
+
+Next, create a build directory:
+```
+mkdir build
+cd build
 ```
 
 Finally, setup the project according to your development platform:
