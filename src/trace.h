@@ -11,6 +11,9 @@ class Trace
 public:
     const static float WIDTH; // trace line width
     const static float DELTA; // minimum distance between series points
+    const static glm::vec3 COLOR; // color of the trace
+    const static glm::vec3 PREVIOUS_COLOR; // color of the previous trace series
+    static bool keepPrevious; // also draw the previous trace series
 
     Trace(Shader* shader, Camera* camera, RigidBody* target);
     ~Trace();
@@ -37,9 +40,10 @@ private:
 
     unsigned int VAO, VBO;
     std::vector<glm::vec3> points;
+    std::vector<glm::vec3> previousPoints;
 
     /**
      * Draw a point series on the screen.
      */
-    void drawSeries(std::vector<glm::vec3> &series);
+    void drawSeries(std::vector<glm::vec3> &series, glm::vec3 color);
 };

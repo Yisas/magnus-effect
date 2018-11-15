@@ -1,10 +1,12 @@
 #include "trace.h"
 
-#include <iostream>
 using namespace std;
 
 const float Trace::WIDTH = 1.0f;
 const float Trace::DELTA = 0.01f;
+const glm::vec3 Trace::COLOR = glm::vec3(1.0f, 0.5f, 0.2f);
+const glm::vec3 Trace::PREVIOUS_COLOR = glm::vec3(0.75f, 0.3f, 0.1f);
+bool Trace::keepPrevious;
 
 Trace::Trace(Shader* shader, Camera* camera, RigidBody* target)
     :shader(shader), camera(camera), target(target)
@@ -23,11 +25,16 @@ void Trace::update()
     {
         points.push_back(target->position);
     }  
-    cout << points.size() << endl;
 }
 
 void Trace::reset()
 {
+    if (points.size() == 0)
+        return;
+    if (keepPrevious)
+        previousPoints = points;
+    else
+        previousPoints.clear();
     points.clear();
 }
 
@@ -35,10 +42,12 @@ void Trace::draw()
 {
     shader->use();
     camera->configure(shader);
-    drawSeries(points);
+    if (keepPrevious && previousPoints.size() != 0)
+        drawSeries(previousPoints, PREVIOUS_COLOR);
+    drawSeries(points, COLOR);
 }
 
-void Trace::drawSeries(vector<glm::vec3> &series)
+void Trace::drawSeries(vector<glm::vec3> &series, glm::vec3 color)
 {
     // create buffers
     glGenVertexArrays(1, &VAO);
@@ -50,8 +59,9 @@ void Trace::drawSeries(vector<glm::vec3> &series)
     glEnableVertexAttribArray(0);
 
     // draw series
+    shader->setVec3("color", color);
     glLineWidth(WIDTH);
-    glDrawArrays(GL_LINE_STRIP, 0, points.size());
+    glDrawArrays(GL_LINE_STRIP, 0, series.size());
     glLineWidth(1);
 
     // free resources

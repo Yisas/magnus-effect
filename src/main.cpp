@@ -20,7 +20,6 @@ float lastFrame, deltaTime;
 float playbackSpeed = 1;
 bool playing = false;
 bool traceTrajectory;
-bool keepPreviousTrajectory;
 
 GLFWwindow* window;
 Screen* screen;
@@ -140,7 +139,7 @@ void createGUI()
 
     gui->addGroup("Rendering");
     gui->addVariable("Trace trajectory", traceTrajectory);
-    gui->addVariable("Keep previous", keepPreviousTrajectory);
+    gui->addVariable("Keep previous", Trace::keepPrevious);
 
     gui->addGroup("Controls");
     speedBox = gui->addVariable("Playback speed", playbackSpeed);
@@ -272,7 +271,8 @@ void run()
         if (playing)
         {
             scene->update(deltaTime);
-            trace->update();
+            if (traceTrajectory)
+                trace->update();
         }
         scene->draw();
         if (traceTrajectory)
