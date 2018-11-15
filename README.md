@@ -1,11 +1,35 @@
-# Project Description
-This project is an OpenGL rigid body physics simulation of the Magnus effect, developed in partial fulfillment of the requirements of COMP477N for fall 2018.
-
 # Team Members
 * Brandon Baran-Goldwax (40006986)
 * Jesus Imery (27174276)
 * Mathew Knappe (27068697)
 * Samuel Proulx (40019004)
+
+# Project Description
+This project is an OpenGL rigid body physics simulation of the Magnus effect, developed in partial fulfillment of the requirements of COMP477N for fall 2018.
+
+# Building the Project
+This project has a single build dependency: [`cmake`](https://cmake.org/download/), which is used to generate platform-specific makefiles or project files. First clone the repository:
+```
+git clone --recursive https://github.com/proulxsamuel/magnus-effect
+cd magnus-effect
+```
+
+Note that `--recursive` is required in order the clone the submodule repositories which provide the required dependencies. Alternatively, if the project repository is already cloned, initialize the submodules:
+```
+git submodule update --init --recursive
+```
+
+Finally, setup the project according to your development platform:
+```
+# UNIX Makefile
+cmake ..
+
+# Mac OSX
+cmake -G "Xcode" ..
+
+# Microsoft Windows
+cmake -G "Visual Studio 15" ..
+```
 
 # Acknowledgements
 The following resources were used for the development of this project.
