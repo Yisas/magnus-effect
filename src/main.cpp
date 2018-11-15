@@ -40,7 +40,7 @@ void createWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     glfwWindowHint(GLFW_SAMPLES, 4);
     
     // glfw window creation
@@ -121,14 +121,15 @@ void createGUI()
     screen->initialize(window, true);
     FormHelper *gui = new FormHelper(screen);
     nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(20, 20), "Simulation");
-    nanogui::ref<Label> settings = gui->addGroup("Settings");
+    nanogui::ref<Label> settings = gui->addGroup("Ball settings");
     RigidBody* ball = scene->dynamicObjects[0];
-    gui->addVariable("Mass", ball->mass);
-    gui->addVariable("Bounciness", ball->bounciness);
     gui->addVariable<float>("Size",
         [=](float size) { ball->scale = glm::vec3(size); },
         [=]() { return ball->scale.x; }
     );
+    gui->addVariable("Mass", ball->mass);
+    gui->addVariable("Drag", ball->drag);
+    gui->addVariable("Bounciness", ball->bounciness);
     gui->addWidget("Initial position", createVectorBox(optionsWindow, &ball->initialPosition));
     gui->addWidget("Linear velocity", createVectorBox(optionsWindow, &ball->initialLinearVelocity));
     gui->addWidget("Angular velocity", createVectorBox(optionsWindow, &ball->initialAngularVelocity));
@@ -187,8 +188,13 @@ void createGUI()
             screen->keyCallbackEvent(key, scancode, action, mods);
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
-            else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-                scene->reset();
+            if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+            {
+                if (playing)
+                    resetButton->callback()();
+                else
+                    playButton->callback()();
+            }
         }
     );
 
@@ -211,8 +217,13 @@ void createGUI()
     );
 
     glfwSetFramebufferSizeCallback(window,
-        [](GLFWwindow *, int width, int height) {
+        [](GLFWwindow *, int newWidth, int newHeight) {
+            width = newWidth;
+            height = newHeight;
             screen->resizeCallbackEvent(width, height);
+            glViewport(0, 0, width, height);
+            scene->camera->width = width;
+            scene->camera->height = height;
         }
     );
 }
@@ -224,10 +235,10 @@ void createScene()
 {
     Shader* shader = new Shader("shaders/scene.vert", "shaders/scene.frag");
     Camera* camera = new Camera(width, height, 45);
-    camera->setPosition(glm::vec3(0, 1, -5));
-    camera->setDirection(glm::vec3(0, 0, 1));
+    camera->position = glm::vec3(0, 1, -5);
+    camera->direction = glm::vec3(0, 0, 1);
     Light* light = new Light(glm::vec3(1, 1, 1));
-    light->setPosition(glm::vec3(0, 10, 0));
+    light->position = glm::vec3(0, 10, 0);
     scene = new Scene(shader, camera, light);
     
     Transform* plane = new Transform(new Model("models/plane.blend"));
@@ -235,7 +246,7 @@ void createScene()
     plane->scale = glm::vec3(2.74f, 1.0f, 0.76f);
     scene->staticObjects.push_back(plane);
     
-    RigidBody* ball = new RigidBody(new Model("models/ball.blend"), 0.0027f, 0.75f);
+    RigidBody* ball = new RigidBody(new Model("models/ball.blend"), 0.0027f, 0.001027f, 0.75f);
     ball->scale = glm::vec3(0.04f);
     ball->initialPosition = glm::vec3(-2, 1, 0);
     ball->initialLinearVelocity = glm::vec3(3, 3, 0);

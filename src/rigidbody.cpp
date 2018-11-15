@@ -13,11 +13,11 @@ const float RigidBody::GROUND_COORDINATE = 0;
 const glm::vec3 RigidBody::GROUND_NORMAL = glm::vec3(0, 1, 0);
 const glm::vec3 RigidBody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
 
-RigidBody::RigidBody(Model* model, float mass, float bounciness)
-    : Transform(model), mass(mass), bounciness(bounciness)
+RigidBody::RigidBody(Model* model, float mass, float drag, float bounciness)
+    : Transform(model), mass(mass), drag(drag), bounciness(bounciness)
 {
     centerOfMass = glm::vec3(0, 0, 0);
-    bodySpaceInertiaTensor = glm::mat3(1); // TODO: replace with actual sphere inertia tensor
+    bodySpaceInertiaTensor = glm::mat3(1); // TODO: replace with actual sphere inertia tensor (?)
     bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
 }
 
@@ -36,7 +36,7 @@ void RigidBody::update(float deltaTime)
     if (useGravity)
         addForce(mass * GRAVITY, centerOfMass);
     if (useMagnusForce)
-        addForce(glm::vec3(0), centerOfMass); // TODO: replace with actual formula
+        addForce(drag * glm::cross(angularVelocity, linearVelocity), centerOfMass);
     glm::vec3 force = calculateResultingForce();
     
     // linear displacement

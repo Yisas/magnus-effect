@@ -6,11 +6,6 @@ Light::Light(glm::vec3 color)
 
 }
 
-void Light::setPosition(glm::vec3 newPosition)
-{
-    position = newPosition;
-}
-
 void Light::configure(Shader* shader)
 {
     shader->setVec3("lightColor", color);

@@ -12,6 +12,7 @@ public:
 
     // properties
     float mass;
+    float drag;
     float bounciness;
 
     // initial conditions
@@ -23,7 +24,7 @@ public:
     /**
      * Create a new rigid body for the given model.
      */
-    RigidBody(Model* model, float mass, float bounciness);
+    RigidBody(Model* model, float mass, float drag, float bounciness);
 
     /**
      * Reset the rigid body to its initial positions and velocities.
