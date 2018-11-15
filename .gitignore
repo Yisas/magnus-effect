@@ -6,5 +6,8 @@
 .vscode/
 *.code-workspace
 
-# assimp Blender model output file
+# assimp Blender model dump file
 dna.txt
+
+# assimp test directory (very large)
+Vendor/assimp/test/
