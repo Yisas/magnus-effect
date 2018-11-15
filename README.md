@@ -8,7 +8,7 @@
 This project is an OpenGL rigid body physics simulation of the Magnus effect, developed in partial fulfillment of the requirements of COMP477N for fall 2018.
 
 # Building the Project
-This project has a single build dependency: [`cmake`](https://cmake.org/download/), which is used to generate platform-specific makefiles or project files. First clone the repository:
+This project has a single build dependency: [`cmake`](https://cmake.org/download/), which is used to generate platform-specific makefiles or project files. First, clone the repository:
 ```
 git clone --recursive https://github.com/proulxsamuel/magnus-effect
 cd magnus-effect
