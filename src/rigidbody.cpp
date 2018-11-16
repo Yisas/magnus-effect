@@ -21,14 +21,15 @@ RigidBody::RigidBody(Model* model, float mass, float drag, float bounciness)
 
 void RigidBody::initialize()
 {
+    centerOfMass = glm::vec3(0, 0, 0);
+    bodySpaceInertiaTensor = glm::mat3(2.0f / 5.0f * mass * pow(scale.x / 2, 2));
+    bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
+    
     position = initialPosition;
     rotation = initialRotation;
     linearVelocity = initialLinearVelocity;
     angularVelocity = initialAngularVelocity;
     angularMomentum = bodySpaceInertiaTensor * angularVelocity;
-    centerOfMass = glm::vec3(0, 0, 0);
-    bodySpaceInertiaTensor = glm::mat3(2.0f / 5.0f * mass * pow(scale.x / 2, 2));
-    bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
 }
 
 void RigidBody::update(float deltaTime)

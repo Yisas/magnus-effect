@@ -25,7 +25,6 @@ GLFWwindow* window;
 Screen* screen;
 FloatBox<float>* speedBox;
 Slider* speedSlider;
-Button* resetButton;
 Button* playButton;
 Scene* scene;
 Trace* trace;
@@ -63,6 +62,48 @@ void createWindow()
 }
 
 /**
+ * Create the application scene.
+ */
+void createScene()
+{
+    Shader* shader = new Shader("shaders/scene.vert", "shaders/scene.frag");
+    Shader* depthShader = new Shader("shaders/depth.vert", "shaders/depth.frag");
+    Camera* camera = new Camera(width, height, 45);
+    camera->position = glm::vec3(0, 1, -5);
+    Light* light = new Light();
+    light->position = glm::vec3(0, 10, 0);
+    scene = new Scene(shader, depthShader, camera, light);
+    
+    Transform* plane = new Transform(new Model("models/plane.blend"));
+    plane->rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+    plane->scale = glm::vec3(10.0f, 1.0f, 5.0f);
+    scene->staticObjects.push_back(plane);
+    
+    RigidBody* ball = new RigidBody(new Model("models/ball.blend"), 0.0027f, 0.0001f, 0.75f);
+    ball->scale = glm::vec3(0.04f);
+    ball->initialPosition = glm::vec3(-2, 1, 0);
+    ball->initialLinearVelocity = glm::vec3(3, 3, 0);
+    ball->initialAngularVelocity = glm::vec3(0, 0, -6.28f);
+    scene->dynamicObjects.push_back(ball);
+
+    scene->initialize();
+
+    Shader* traceShader = new Shader("shaders/trace.vert", "shaders/trace.frag");
+    trace = new Trace(traceShader, camera, ball);
+}
+
+/**
+ * Reset the scene to its default state.
+ */
+void resetScene()
+{
+    playing = false;
+    playButton->setCaption("Play");
+    scene->initialize();
+    trace->reset();
+}
+
+/**
  * Create a composite box widget to input a vector value.
  */
 nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
@@ -88,23 +129,25 @@ nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
             box->setValue(vector->x);
             box->setCallback([=](float value) {
                 vector->x = value;
-                resetButton->callback()();
+                resetScene();
             });
         }
         else if (axis == "y")
         {
             box->setValue(vector->y);
-            box->setCallback([=](float value) {
+            box->setCallback([=](float value)
+            {
                 vector->y = value;
-                resetButton->callback()();
+                resetScene();
             });
         }
         else
         {
             box->setValue(vector->z);
-            box->setCallback([=](float value) {
+            box->setCallback([=](float value)
+            {
                 vector->z = value;
-                resetButton->callback()();
+                resetScene();
             });
         }
     }
@@ -121,7 +164,13 @@ void createGUI()
     screen->initialize(window, true);
     FormHelper *gui = new FormHelper(screen);
     nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(20, 20), "Simulation");
-    nanogui::ref<Label> settings = gui->addGroup("Ball settings");
+
+    gui->addGroup("Camera");
+    Camera* camera = scene->camera;
+    gui->addWidget("Position", createVectorBox(optionsWindow, &camera->position));
+    gui->addWidget("Direction", createVectorBox(optionsWindow, &camera->direction));
+
+    gui->addGroup("Ball");
     RigidBody* ball = scene->dynamicObjects[0];
     gui->addVariable<float>("Size",
         [=](float size) { ball->scale = glm::vec3(size); },
@@ -144,27 +193,31 @@ void createGUI()
 
     gui->addGroup("Controls");
     speedBox = gui->addVariable("Playback speed", playbackSpeed);
-    speedBox->setCallback([=](float value) {
+    speedBox->setCallback([=](float value)
+    {
         playbackSpeed = value;
         speedSlider->setValue(value);
     });
     speedSlider = new Slider(optionsWindow);
     speedSlider->setRange(pair<float, float>(0, 2));
     speedSlider->setValue(playbackSpeed);
-    speedSlider->setCallback([=](float value) {
+    speedSlider->setCallback([=](float value)
+    {
         playbackSpeed = value;
         speedBox->setValue(value);
     });
     gui->addWidget(" ", speedSlider);
-    resetButton = gui->addButton("Reset", []() {
-        playing = false;
-        playButton->setCaption("Play");
-        scene->initialize();
-        trace->reset();
-    });
-    playButton = gui->addButton("Play", []() {
-        playing = !playing;
-        playButton->setCaption(playing? "Stop" : "Play");
+    playButton = gui->addButton("Play", []()
+    {
+        if (!playing)
+        {
+            playing = true;
+            playButton->setCaption("Stop");
+        }
+        else
+        {
+            resetScene();
+        }
     });
     screen->setVisible(true);
     screen->performLayout();
@@ -191,7 +244,7 @@ void createGUI()
             if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
             {
                 if (playing)
-                    resetButton->callback()();
+                    resetScene();
                 else
                     playButton->callback()();
             }
@@ -229,37 +282,6 @@ void createGUI()
 }
 
 /**
- * Create the application scene.
- */
-void createScene()
-{
-    Shader* shader = new Shader("shaders/scene.vert", "shaders/scene.frag");
-    Shader* depthShader = new Shader("shaders/depth.vert", "shaders/depth.frag");
-    Camera* camera = new Camera(width, height, 45);
-    camera->position = glm::vec3(0, 1, -5);
-    Light* light = new Light();
-    light->position = glm::vec3(0, 10, 0);
-    scene = new Scene(shader, depthShader, camera, light);
-    
-    Transform* plane = new Transform(new Model("models/plane.blend"));
-    plane->rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
-    plane->scale = glm::vec3(2.74f, 1.0f, 0.76f);
-    scene->staticObjects.push_back(plane);
-    
-    RigidBody* ball = new RigidBody(new Model("models/ball.blend"), 0.0027f, 0.001027f, 0.75f);
-    ball->scale = glm::vec3(0.04f);
-    ball->initialPosition = glm::vec3(-2, 1, 0);
-    ball->initialLinearVelocity = glm::vec3(3, 3, 0);
-    ball->initialAngularVelocity = glm::vec3(0, 0, -6.28f);
-    scene->dynamicObjects.push_back(ball);
-
-    scene->initialize();
-
-    Shader* traceShader = new Shader("shaders/trace.vert", "shaders/trace.frag");
-    trace = new Trace(traceShader, camera, ball);
-}
-
-/**
  * Run the application main loop.
  */
 void run()
@@ -283,12 +305,12 @@ void run()
         // update scene
         if (playing)
         {
-            scene->update(deltaTime);
             if (traceTrajectory)
                 trace->update();
+            scene->update(deltaTime);
         }
 
-        // draw scne
+        // draw scene
         scene->draw();
         if (traceTrajectory)
             trace->draw();
@@ -317,7 +339,6 @@ int main()
     delete trace;
     delete scene;
     delete screen;
-    delete resetButton;
     delete playButton;
     delete window;
     return EXIT_SUCCESS;
