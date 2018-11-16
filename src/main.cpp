@@ -159,7 +159,7 @@ void createGUI()
     resetButton = gui->addButton("Reset", []() {
         playing = false;
         playButton->setCaption("Play");
-        scene->reset();
+        scene->initialize();
         trace->reset();
     });
     playButton = gui->addButton("Play", []() {
@@ -253,7 +253,7 @@ void createScene()
     ball->initialAngularVelocity = glm::vec3(0, 0, -6.28f);
     scene->dynamicObjects.push_back(ball);
 
-    scene->reset();
+    scene->initialize();
 
     Shader* traceShader = new Shader("shaders/trace.vert", "shaders/trace.frag");
     trace = new Trace(traceShader, camera, ball);

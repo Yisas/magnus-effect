@@ -32,7 +32,7 @@ public:
     /**
      * Reset the positions and velocites of the rigid bodies in the scene.
      */
-    void reset();
+    void initialize();
 
     /**
      * Draw the scene.

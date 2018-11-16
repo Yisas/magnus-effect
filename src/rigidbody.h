@@ -28,8 +28,9 @@ public:
 
     /**
      * Reset the rigid body to its initial positions and velocities.
+     * This also pre-calculates its inertia tensor.
      */
-    void reset();
+    void initialize();
 
     /**
      * Update the rigid body attributes for the given time interval.

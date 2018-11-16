@@ -47,11 +47,11 @@ Scene::~Scene()
     dynamicObjects.clear();
 }
 
-void Scene::reset()
+void Scene::initialize()
 {
-    for (RigidBody* object : dynamicObjects)
+    for (RigidBody* rigidBody : dynamicObjects)
     {
-        object->reset();
+        rigidBody->initialize();
     }
 }
 

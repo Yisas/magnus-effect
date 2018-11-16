@@ -16,18 +16,19 @@ const glm::vec3 RigidBody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
 RigidBody::RigidBody(Model* model, float mass, float drag, float bounciness)
     : Transform(model), mass(mass), drag(drag), bounciness(bounciness)
 {
-    centerOfMass = glm::vec3(0, 0, 0);
-    bodySpaceInertiaTensor = glm::mat3(1); // TODO: replace with actual sphere inertia tensor (?)
-    bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
+
 }
 
-void RigidBody::reset()
+void RigidBody::initialize()
 {
     position = initialPosition;
     rotation = initialRotation;
     linearVelocity = initialLinearVelocity;
     angularVelocity = initialAngularVelocity;
     angularMomentum = bodySpaceInertiaTensor * angularVelocity;
+    centerOfMass = glm::vec3(0, 0, 0);
+    bodySpaceInertiaTensor = glm::mat3(2.0f / 5.0f * mass * pow(scale.x / 2, 2));
+    bodySpaceInertiaTensorInverse = glm::inverse(bodySpaceInertiaTensor);
 }
 
 void RigidBody::update(float deltaTime)

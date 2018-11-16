@@ -2,7 +2,7 @@
 
 using namespace std;
 
-const float Trace::WIDTH = 1.0f;
+const float Trace::WIDTH = 1.5f;
 const float Trace::DELTA = 0.01f;
 const glm::vec3 Trace::COLOR = glm::vec3(1.0f, 0.5f, 0.2f);
 const glm::vec3 Trace::PREVIOUS_COLOR = glm::vec3(0.75f, 0.3f, 0.1f);
