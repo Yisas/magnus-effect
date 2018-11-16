@@ -11,14 +11,17 @@
 class Scene
 {
 public:
+    const static unsigned int SHADOW_RESOLUTION;
+
     Shader* shader;
+    Shader* depthShader;
     Camera* camera;
     Light* light;
 
     std::vector<Transform*> staticObjects;
     std::vector<RigidBody*> dynamicObjects;
 
-    Scene(Shader* shader, Camera* camera, Light* light);
+    Scene(Shader* shader, Shader* depthShader, Camera* camera, Light* light);
     ~Scene();
 
     /**
@@ -37,5 +40,10 @@ public:
     void draw();
 
 private:
+    unsigned int depthMap, depthMapFBO;
 
+    /**
+     * Draw the scene objects with the given shader.
+     */
+    void drawObjects(Shader* shader);
 };

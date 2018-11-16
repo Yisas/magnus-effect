@@ -234,12 +234,12 @@ void createGUI()
 void createScene()
 {
     Shader* shader = new Shader("shaders/scene.vert", "shaders/scene.frag");
+    Shader* depthShader = new Shader("shaders/depth.vert", "shaders/depth.frag");
     Camera* camera = new Camera(width, height, 45);
     camera->position = glm::vec3(0, 1, -5);
-    camera->direction = glm::vec3(0, 0, 1);
-    Light* light = new Light(glm::vec3(1, 1, 1));
+    Light* light = new Light();
     light->position = glm::vec3(0, 10, 0);
-    scene = new Scene(shader, camera, light);
+    scene = new Scene(shader, depthShader, camera, light);
     
     Transform* plane = new Transform(new Model("models/plane.blend"));
     plane->rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
@@ -273,23 +273,25 @@ void run()
 
         // clear frame
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        
+        // reset flags
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
         glEnable(GL_MULTISAMPLE);
 
-        // draw scene
+        // update scene
         if (playing)
         {
             scene->update(deltaTime);
             if (traceTrajectory)
                 trace->update();
         }
+
+        // draw scne
         scene->draw();
         if (traceTrajectory)
-        {
             trace->draw();
-        }
 
         // draw GUI
         screen->drawContents();
