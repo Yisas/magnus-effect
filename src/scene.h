@@ -11,18 +11,16 @@
 class Scene
 {
 public:
-    const static unsigned int SHADOW_RESOLUTION;
+    Camera camera;
+    Light light;
+    std::vector<Transform> staticObjects;
+    std::vector<RigidBody> dynamicObjects;
 
-    Shader* shader;
-    Shader* depthShader;
-    Camera* camera;
-    Light* light;
-
-    std::vector<Transform*> staticObjects;
-    std::vector<RigidBody*> dynamicObjects;
-
-    Scene(Shader* shader, Shader* depthShader, Camera* camera, Light* light);
-    ~Scene();
+    /**
+     * Create a new empty scene.
+     * The scene will be rendered by the given shaders, camera and light.
+     */
+    Scene(Camera camera, Light light, shared_ptr<Shader> shader, shared_ptr<Shader> depthShader);
 
     /**
      * Update the scene's rigid bodies to reflect the given delta time changes.
@@ -40,10 +38,13 @@ public:
     void draw();
 
 private:
+    const static unsigned int SHADOW_RESOLUTION;
     unsigned int depthMap, depthMapFBO;
+    shared_ptr<Shader> shader;
+    shared_ptr<Shader> depthShader;
 
     /**
      * Draw the scene objects with the given shader.
      */
-    void drawObjects(Shader* shader);
+    void drawObjects(Shader &shader);
 };

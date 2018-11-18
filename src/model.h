@@ -33,7 +33,7 @@ public:
     /**
      * Draws the model, and thus all its meshes.
      */
-    void draw(Shader shader);
+    void draw(Shader &shader);
     
 private:
     /**

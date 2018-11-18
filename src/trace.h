@@ -15,8 +15,14 @@ public:
     const static glm::vec3 PREVIOUS_COLOR; // color of the previous trace series
     static bool keepPrevious; // also draw the previous trace series
 
-    Trace(Shader* shader, Camera* camera, RigidBody* target);
-    ~Trace();
+    Camera &camera; // scene camera that renders the trace
+    RigidBody &target; // object to track and for which to trace the trajectory
+
+    /**
+     * Create a new trace for the given target.
+     * The trace will be rendered using the given shader and camera.
+     */
+    Trace(RigidBody &target, Camera &camera, shared_ptr<Shader> shader);
 
     /**
      * Update the trace points by fetching the target's new coordinates.
@@ -34,9 +40,7 @@ public:
     void draw();
 
 private:
-    Shader* shader;
-    Camera* camera; // scene camera that renders the trace
-    RigidBody* target; // object to track and for which to trace the trajectory
+    shared_ptr<Shader> shader;
 
     unsigned int VAO, VBO;
     std::vector<glm::vec3> points;

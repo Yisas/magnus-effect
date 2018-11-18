@@ -1,7 +1,6 @@
 #include "rigidbody.h"
 
 #include <glm/gtc/quaternion.hpp>
-
 #include <iostream>
 
 using namespace std;
@@ -13,7 +12,7 @@ const float RigidBody::GROUND_COORDINATE = 0;
 const glm::vec3 RigidBody::GROUND_NORMAL = glm::vec3(0, 1, 0);
 const glm::vec3 RigidBody::GRAVITY = glm::vec3(0.0f, -9.81f, 0.0f);
 
-RigidBody::RigidBody(Model* model, float mass, float drag, float bounciness)
+RigidBody::RigidBody(shared_ptr<Model> model, float mass, float drag, float bounciness)
     : Transform(model), mass(mass), drag(drag), bounciness(bounciness)
 {
 

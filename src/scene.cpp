@@ -1,12 +1,13 @@
 #include "scene.h"
 
 #include <iostream>
+
 using namespace std;
 
 const unsigned int Scene::SHADOW_RESOLUTION = 2048;
 
-Scene::Scene(Shader* shader, Shader* depthShader, Camera* camera, Light* light)
-    :shader(shader), depthShader(depthShader), camera(camera), light(light)
+Scene::Scene(Camera camera, Light light, shared_ptr<Shader> shader, shared_ptr<Shader> depthShader)
+    : camera(camera), light(light), shader(shader), depthShader(depthShader)
 {
     glGenFramebuffers(1, &depthMapFBO);
     
@@ -29,37 +30,19 @@ Scene::Scene(Shader* shader, Shader* depthShader, Camera* camera, Light* light)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Scene::~Scene()
-{
-    delete shader;
-    delete depthShader;
-    delete camera;
-    delete light;
-    for (Transform* object : staticObjects)
-    {
-        delete object;
-    }
-    staticObjects.clear();
-    for (RigidBody* object : dynamicObjects)
-    {
-        delete object;
-    }
-    dynamicObjects.clear();
-}
-
 void Scene::initialize()
 {
-    for (RigidBody* rigidBody : dynamicObjects)
+    for (RigidBody &rigidBody : dynamicObjects)
     {
-        rigidBody->initialize();
+        rigidBody.initialize();
     }
 }
 
 void Scene::update(float deltaTime)
 {
-    for (RigidBody* object : dynamicObjects)
+    for (RigidBody &rigidBody : dynamicObjects)
     {
-        object->update(deltaTime);
+        rigidBody.update(deltaTime);
     }
 }
 
@@ -71,32 +54,32 @@ void Scene::draw()
     glClear(GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
     depthShader->use();
-    camera->configure(depthShader);
-    light->configure(depthShader);
-    drawObjects(depthShader);
+    camera.configure(*depthShader);
+    light.configure(*depthShader);
+    drawObjects(*depthShader);
     glCullFace(GL_BACK);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // render scene using shadow map
-    glViewport(0, 0, camera->width, camera->height);
+    glViewport(0, 0, camera.width, camera.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader->use();
-    camera->configure(shader);
-    light->configure(shader); 
     shader->setInt("shadowMap", 1);
+    camera.configure(*shader);
+    light.configure(*shader);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, depthMap);
-    drawObjects(shader);
+    drawObjects(*shader);
 }
 
-void Scene::drawObjects(Shader* shader)
+void Scene::drawObjects(Shader &shader)
 {
-    for (Transform* object : staticObjects)
+    for (Transform &staticObject : staticObjects)
     {
-        object->draw(shader);
+        staticObject.draw(shader);
     }
-    for (RigidBody* object : dynamicObjects)
+    for (RigidBody &dynamicObject : dynamicObjects)
     {
-        object->draw(shader);
+        dynamicObject.draw(shader);
     }
 }

@@ -8,23 +8,18 @@ const glm::vec3 Trace::COLOR = glm::vec3(1.0f, 0.5f, 0.2f);
 const glm::vec3 Trace::PREVIOUS_COLOR = glm::vec3(0.75f, 0.3f, 0.1f);
 bool Trace::keepPrevious;
 
-Trace::Trace(Shader* shader, Camera* camera, RigidBody* target)
-    :shader(shader), camera(camera), target(target)
+Trace::Trace(RigidBody &target, Camera &camera, shared_ptr<Shader> shader)
+    : target(target), camera(camera), shader(shader)
 {
 
-}
-
-Trace::~Trace()
-{
-    delete shader;
 }
 
 void Trace::update()
 {
-    if (points.size() <= 1 || glm::distance(target->position, points[points.size() - 1]) >= DELTA)
+    if (points.size() <= 1 || glm::distance(target.position, points[points.size() - 1]) >= DELTA)
     {
-        points.push_back(target->position);
-    }  
+        points.push_back(target.position);
+    } 
 }
 
 void Trace::reset()
@@ -41,7 +36,7 @@ void Trace::reset()
 void Trace::draw()
 {
     shader->use();
-    camera->configure(shader);
+    camera.configure(*shader);
     if (keepPrevious && previousPoints.size() != 0)
         drawSeries(previousPoints, PREVIOUS_COLOR);
     drawSeries(points, COLOR);

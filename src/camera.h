@@ -22,5 +22,5 @@ public:
     /**
      * Configure the camera matrices for rendering the scene with the given shader.
      */
-    void configure(Shader* shader);
+    void configure(Shader &shader);
 };

@@ -4,6 +4,7 @@
 #include "model.h"
 
 #include <glm/glm.hpp>
+#include <memory>
 
 class Transform
 {
@@ -16,18 +17,13 @@ public:
     /**
      * Create a new transform for the given model.
      */
-    Transform(Model* model);
-
-    /**
-     * Destructor.
-     */
-    virtual ~Transform();
+    Transform(shared_ptr<Model> model);
 
     /**
      * Draw the transform model using the given shader.
      */
-    void draw(Shader* shader);
+    void draw(Shader &shader);
 
 protected:
-    Model* model;
+    shared_ptr<Model> model;
 };

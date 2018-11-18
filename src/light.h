@@ -13,5 +13,5 @@ public:
     /**
      * Configure the light uniforms for rendering the scene with the given shader.
      */
-    void configure(Shader* shader);
+    void configure(Shader &shader);
 };

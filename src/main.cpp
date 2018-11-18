@@ -8,8 +8,8 @@
 #include "trace.h"
 
 #include <nanogui/nanogui.h>
-
 #include <iostream>
+#include <memory>
 
 using namespace nanogui;
 using namespace std;
@@ -22,12 +22,13 @@ bool playing = false;
 bool traceTrajectory;
 
 GLFWwindow* window;
-Screen* screen;
-FloatBox<float>* speedBox;
-Slider* speedSlider;
-Button* playButton;
-Scene* scene;
-Trace* trace;
+nanogui::ref<Screen> screen;
+nanogui::ref<FloatBox<float>> speedBox;
+nanogui::ref<Slider> speedSlider;
+nanogui::ref<Button> playButton;
+
+unique_ptr<Scene> scene;
+unique_ptr<Trace> trace;
 
 /**
  * Initialize OpenGL and create the application window.
@@ -66,30 +67,39 @@ void createWindow()
  */
 void createScene()
 {
-    Shader* shader = new Shader("shaders/scene.vert", "shaders/scene.frag");
-    Shader* depthShader = new Shader("shaders/depth.vert", "shaders/depth.frag");
-    Camera* camera = new Camera(width, height, 45);
-    camera->position = glm::vec3(0, 1, -5);
-    Light* light = new Light();
-    light->position = glm::vec3(0, 10, 0);
-    scene = new Scene(shader, depthShader, camera, light);
-    
-    Transform* plane = new Transform(new Model("models/plane.blend"));
-    plane->rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
-    plane->scale = glm::vec3(10.0f, 1.0f, 5.0f);
-    scene->staticObjects.push_back(plane);
-    
-    RigidBody* ball = new RigidBody(new Model("models/ball.blend"), 0.0027f, 0.0001f, 0.75f);
-    ball->scale = glm::vec3(0.04f);
-    ball->initialPosition = glm::vec3(-2, 1, 0);
-    ball->initialLinearVelocity = glm::vec3(3, 3, 0);
-    ball->initialAngularVelocity = glm::vec3(0, 0, -6.28f);
-    scene->dynamicObjects.push_back(ball);
+    // shaders
+    shared_ptr<Shader> shader = make_shared<Shader>("shaders/scene.vert", "shaders/scene.frag");
+    shared_ptr<Shader> depthShader = make_shared<Shader>("shaders/depth.vert", "shaders/depth.frag");
+    shared_ptr<Shader> traceShader = make_shared<Shader>("shaders/trace.vert", "shaders/trace.frag");
 
+    // models
+    shared_ptr<Model> planeModel = make_shared<Model>("models/plane.blend");
+    shared_ptr<Model> ballModel = make_shared<Model>("models/ball.blend");
+
+    // shared scene elements
+    Light light = Light();
+    light.position = glm::vec3(0, 10, 0);
+    
+    // ping pong scene
+    Camera camera(width, height, 45);
+    camera.position = glm::vec3(0, 1, -5);
+    Transform plane(planeModel);
+    plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+    plane.scale = glm::vec3(2.74f, 1.0f, 1.525f);
+    RigidBody ball(ballModel, 0.0027f, 0.0001f, 0.75f);
+    ball.scale = glm::vec3(0.04f);
+    ball.initialPosition = glm::vec3(-2, 1, 0);
+    ball.initialLinearVelocity = glm::vec3(3, 3, 0);
+    ball.initialAngularVelocity = glm::vec3(0, 0, -6.28f);
+    scene = make_unique<Scene>(camera, light, shader, depthShader);
+    scene->staticObjects.push_back(plane);
+    scene->dynamicObjects.push_back(ball);
     scene->initialize();
 
-    Shader* traceShader = new Shader("shaders/trace.vert", "shaders/trace.frag");
-    trace = new Trace(traceShader, camera, ball);
+    // other scenes
+    // [...]
+
+    trace = make_unique<Trace>(scene->dynamicObjects[0], scene->camera, traceShader);
 }
 
 /**
@@ -162,27 +172,27 @@ void createGUI()
     // create GUI
     screen = new Screen();
     screen->initialize(window, true);
-    FormHelper *gui = new FormHelper(screen);
+    FormHelper *gui = new FormHelper(screen.get());
     nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(20, 20), "Simulation");
 
     gui->addGroup("Camera");
-    Camera* camera = scene->camera;
-    gui->addWidget("Position", createVectorBox(optionsWindow, &camera->position));
-    gui->addWidget("Direction", createVectorBox(optionsWindow, &camera->direction));
-
+    Camera &camera = scene->camera;
+    gui->addWidget("Position", createVectorBox(optionsWindow, &camera.position));
+    gui->addWidget("Direction", createVectorBox(optionsWindow, &camera.direction));
+    
     gui->addGroup("Ball");
-    RigidBody* ball = scene->dynamicObjects[0];
+    RigidBody &ball = scene->dynamicObjects[0];
     gui->addVariable<float>("Size",
-        [=](float size) { ball->scale = glm::vec3(size); },
-        [=]() { return ball->scale.x; }
+        [=](float size) { scene->dynamicObjects[0].scale = glm::vec3(size); },
+        [=]() { return scene->dynamicObjects[0].scale.x; }
     );
-    gui->addVariable("Mass", ball->mass);
-    gui->addVariable("Drag", ball->drag);
-    gui->addVariable("Bounciness", ball->bounciness);
-    gui->addWidget("Initial position", createVectorBox(optionsWindow, &ball->initialPosition));
-    gui->addWidget("Linear velocity", createVectorBox(optionsWindow, &ball->initialLinearVelocity));
-    gui->addWidget("Angular velocity", createVectorBox(optionsWindow, &ball->initialAngularVelocity));
-
+    gui->addVariable("Mass", scene->dynamicObjects[0].mass);
+    gui->addVariable("Drag", scene->dynamicObjects[0].drag);
+    gui->addVariable("Bounciness", scene->dynamicObjects[0].bounciness);
+    gui->addWidget("Initial position", createVectorBox(optionsWindow, &ball.initialPosition));
+    gui->addWidget("Linear velocity", createVectorBox(optionsWindow, &ball.initialLinearVelocity));
+    gui->addWidget("Angular velocity", createVectorBox(optionsWindow, &ball.initialAngularVelocity));
+    
     gui->addGroup("Forces");
     gui->addVariable("Gravitational force", RigidBody::useGravity);
     gui->addVariable("Magnus force", RigidBody::useMagnusForce);
@@ -225,19 +235,22 @@ void createGUI()
     // event callbacks
 
     glfwSetCursorPosCallback(window,
-            [](GLFWwindow *, double x, double y) {
+        [](GLFWwindow *, double x, double y)
+        {
             screen->cursorPosCallbackEvent(x, y);
         }
     );
 
     glfwSetMouseButtonCallback(window,
-        [](GLFWwindow *, int button, int action, int modifiers) {
+        [](GLFWwindow *, int button, int action, int modifiers)
+        {
             screen->mouseButtonCallbackEvent(button, action, modifiers);
         }
     );
 
     glfwSetKeyCallback(window,
-        [](GLFWwindow *, int key, int scancode, int action, int mods) {
+        [](GLFWwindow *, int key, int scancode, int action, int mods)
+        {
             screen->keyCallbackEvent(key, scancode, action, mods);
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
@@ -252,31 +265,35 @@ void createGUI()
     );
 
     glfwSetCharCallback(window,
-        [](GLFWwindow *, unsigned int codepoint) {
+        [](GLFWwindow *, unsigned int codepoint)
+        {
             screen->charCallbackEvent(codepoint);
         }
     );
 
     glfwSetDropCallback(window,
-        [](GLFWwindow *, int count, const char **filenames) {
+        [](GLFWwindow *, int count, const char **filenames)
+        {
             screen->dropCallbackEvent(count, filenames);
         }
     );
 
     glfwSetScrollCallback(window,
-        [](GLFWwindow *, double x, double y) {
+        [](GLFWwindow *, double x, double y)
+        {
             screen->scrollCallbackEvent(x, y);
        }
     );
 
     glfwSetFramebufferSizeCallback(window,
-        [](GLFWwindow *, int newWidth, int newHeight) {
+        [](GLFWwindow *, int newWidth, int newHeight)
+        {
             width = newWidth;
             height = newHeight;
             screen->resizeCallbackEvent(width, height);
             glViewport(0, 0, width, height);
-            scene->camera->width = width;
-            scene->camera->height = height;
+            scene->camera.width = width;
+            scene->camera.height = height;
         }
     );
 }
@@ -288,7 +305,8 @@ void run()
 {
     // rendering loop
     lastFrame = glfwGetTime();
-    while (glfwWindowShouldClose(window) == false) {
+    while (glfwWindowShouldClose(window) == false)
+    {
         float currentFrame = glfwGetTime();
         deltaTime = (currentFrame - lastFrame) * playbackSpeed;
         lastFrame = currentFrame;
@@ -336,10 +354,6 @@ int main()
     createGUI();
     run();
 
-    delete trace;
-    delete scene;
-    delete screen;
-    delete playButton;
-    delete window;
+    glfwTerminate();
     return EXIT_SUCCESS;
 }

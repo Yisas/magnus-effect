@@ -6,7 +6,6 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <glad/glad.h>
-
 #include <string>
 #include <vector>
 
@@ -45,7 +44,7 @@ public:
     /**
      * Render the mesh.
      */
-    void draw(Shader shader);
+    void draw(Shader &shader);
 
 private:
     // render data

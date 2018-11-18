@@ -1,10 +1,9 @@
 #include "model.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -17,7 +16,7 @@ Model::Model(string const &path, bool gamma) : gammaCorrection(gamma)
     loadModel(path);
 }
 
-void Model::draw(Shader shader)
+void Model::draw(Shader &shader)
 {
     for(unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].draw(shader);
