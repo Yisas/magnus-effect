@@ -24,7 +24,7 @@ public:
     /**
      * Create a new rigid body for the given model.
      */
-    RigidBody(shared_ptr<Model> model, float mass, float drag, float bounciness);
+    RigidBody(shared_ptr<Model> model, float mass, float bounciness, float drag);
 
     /**
      * Reset the rigid body to its initial positions and velocities.

@@ -27,6 +27,9 @@ nanogui::ref<FloatBox<float>> speedBox;
 nanogui::ref<Slider> speedSlider;
 nanogui::ref<Button> playButton;
 
+vector<string> presets = { "Ping Pong", "Soccer" };
+unsigned int preset;
+vector<Scene> scenes;
 unique_ptr<Scene> scene;
 unique_ptr<Trace> trace;
 
@@ -63,9 +66,9 @@ void createWindow()
 }
 
 /**
- * Create the application scene.
+ * Create the application scenes.
  */
-void createScene()
+void createScenes()
 {
     // shaders
     shared_ptr<Shader> shader = make_shared<Shader>("shaders/scene.vert", "shaders/scene.frag");
@@ -78,28 +81,47 @@ void createScene()
 
     // shared scene elements
     Light light = Light();
-    light.position = glm::vec3(0, 10, 0);
+    light.position = glm::vec3(0, 50, 0);
     
     // ping pong scene
-    Camera camera(width, height, 45);
-    camera.position = glm::vec3(0, 1, -5);
-    Transform plane(planeModel);
-    plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
-    plane.scale = glm::vec3(2.74f, 1.0f, 1.525f);
-    RigidBody ball(ballModel, 0.0027f, 0.0001f, 0.75f);
-    ball.scale = glm::vec3(0.04f);
-    ball.initialPosition = glm::vec3(-2, 1, 0);
-    ball.initialLinearVelocity = glm::vec3(3, 3, 0);
-    ball.initialAngularVelocity = glm::vec3(0, 0, -6.28f);
-    scene = make_unique<Scene>(camera, light, shader, depthShader);
-    scene->staticObjects.push_back(plane);
-    scene->dynamicObjects.push_back(ball);
-    scene->initialize();
+    {
+        Camera camera(width, height, 45);
+        camera.position = glm::vec3(0, 1, -5);
+        Transform plane(planeModel);
+        plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+        plane.scale = glm::vec3(2.74f, 1.0f, 1.525f);
+        RigidBody ball(ballModel, 0.0027f, 0.75f, 0.0001f);
+        ball.scale = glm::vec3(0.04f);
+        ball.initialPosition = glm::vec3(-2, 1, 0);
+        ball.initialLinearVelocity = glm::vec3(3, 3, 0);
+        ball.initialAngularVelocity = glm::vec3(0, 0, -6.28f);
+        Scene pingPongScene(camera, light, shader, depthShader);
+        pingPongScene.staticObjects.push_back(plane);
+        pingPongScene.dynamicObjects.push_back(ball);
+        pingPongScene.initialize();
+        scenes.push_back(pingPongScene);
+    }
 
-    // other scenes
-    // [...]
+    // soccer scene
+    {
+        Camera camera(width, height, 45);
+        camera.position = glm::vec3(0, 1, -23);
+        Transform plane(planeModel);
+        plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+        plane.scale = glm::vec3(50);
+        RigidBody ball(ballModel, 0.450f, 0.5f, 0.005f);
+        ball.scale = glm::vec3(0.22f);
+        ball.initialPosition = glm::vec3(0, 0.22f, -20);
+        ball.initialLinearVelocity = glm::vec3(5, 5, 20);
+        ball.initialAngularVelocity = glm::vec3(-20, -40, 0);
+        Scene pingPongScene(camera, light, shader, depthShader);
+        pingPongScene.staticObjects.push_back(plane);
+        pingPongScene.dynamicObjects.push_back(ball);
+        scenes.push_back(pingPongScene);
+    }
 
-    trace = make_unique<Trace>(scene->dynamicObjects[0], scene->camera, traceShader);
+    scene = make_unique<Scene>(scenes[preset]);
+    trace = make_unique<Trace>(&scene->dynamicObjects[0], &scene->camera, traceShader);
 }
 
 /**
@@ -111,6 +133,17 @@ void resetScene()
     playButton->setCaption("Play");
     scene->initialize();
     trace->reset();
+}
+
+/**
+ * Load a preset scene.
+ */
+void loadScene()
+{
+    scene = make_unique<Scene>(scenes[preset]);
+    trace->clear();
+    trace->target = &scene->dynamicObjects[0];
+    trace->camera = &scene->camera;
 }
 
 /**
@@ -170,15 +203,23 @@ nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
 void createGUI()
 {
     // create GUI
+    
     screen = new Screen();
     screen->initialize(window, true);
     FormHelper *gui = new FormHelper(screen.get());
     nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(20, 20), "Simulation");
-
-    gui->addGroup("Camera");
-    Camera &camera = scene->camera;
-    gui->addWidget("Position", createVectorBox(optionsWindow, &camera.position));
-    gui->addWidget("Direction", createVectorBox(optionsWindow, &camera.direction));
+    
+    gui->addGroup("Preset");
+    nanogui::ref<ComboBox> presetBox = new ComboBox(optionsWindow, presets);
+    presetBox->setSelectedIndex(preset);
+    presetBox->setCallback([&](const int value)
+    {
+        preset = value;
+        loadScene();
+        resetScene();
+        createGUI();
+    });
+    gui->addWidget("Load", presetBox);
     
     gui->addGroup("Ball");
     RigidBody &ball = scene->dynamicObjects[0];
@@ -192,12 +233,13 @@ void createGUI()
     gui->addWidget("Initial position", createVectorBox(optionsWindow, &ball.initialPosition));
     gui->addWidget("Linear velocity", createVectorBox(optionsWindow, &ball.initialLinearVelocity));
     gui->addWidget("Angular velocity", createVectorBox(optionsWindow, &ball.initialAngularVelocity));
-    
-    gui->addGroup("Forces");
     gui->addVariable("Gravitational force", RigidBody::useGravity);
     gui->addVariable("Magnus force", RigidBody::useMagnusForce);
 
     gui->addGroup("Rendering");
+    Camera &camera = scene->camera;
+    gui->addWidget("Camera position", createVectorBox(optionsWindow, &camera.position));
+    gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
     gui->addVariable("Trace trajectory", traceTrajectory);
     gui->addVariable("Keep previous", Trace::keepPrevious);
 
@@ -350,7 +392,7 @@ void run()
 int main()
 {
     createWindow();
-    createScene();
+    createScenes();
     createGUI();
     run();
 
