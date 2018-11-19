@@ -85,9 +85,9 @@ glm::vec3 RigidBody::calculateTorque()
 
 void RigidBody::checkCollision()
 {
-    if (position.y - scale.y <= GROUND_COORDINATE)
+    if (position.y - (scale.y / 2) <= GROUND_COORDINATE)
     {
-        float penetration = GROUND_COORDINATE + scale.y - position.y;
+        float penetration = GROUND_COORDINATE + (scale.y / 2) - position.y;
         position -= penetration / -linearVelocity.y * linearVelocity;
         linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) * bounciness;
         angularMomentum *= bounciness;

@@ -79,21 +79,19 @@ void createScenes()
     shared_ptr<Model> planeModel = make_shared<Model>("models/plane.blend");
     shared_ptr<Model> ballModel = make_shared<Model>("models/ball.blend");
 
-    // shared scene elements
-    Light light = Light();
-    light.position = glm::vec3(0, 50, 0);
-    
     // ping pong scene
     {
         Camera camera(width, height, 45);
-        camera.position = glm::vec3(0, 1, -5);
+        camera.position = glm::vec3(0.0f, 0.5f, -2.5f);
+        Light light = Light();
+        light.position = glm::vec3(0, 50, 0);
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
         plane.scale = glm::vec3(2.74f, 1.0f, 1.525f);
         RigidBody ball(ballModel, 0.0027f, 0.75f, 0.0001f);
         ball.scale = glm::vec3(0.04f);
-        ball.initialPosition = glm::vec3(-2, 1, 0);
-        ball.initialLinearVelocity = glm::vec3(3, 3, 0);
+        ball.initialPosition = glm::vec3(-1.0f, 0.5f, 0.0f);
+        ball.initialLinearVelocity = glm::vec3(1.5f, 1.5f, 0.0f);
         ball.initialAngularVelocity = glm::vec3(0, 0, -6.28f);
         Scene pingPongScene(camera, light, shader, depthShader);
         pingPongScene.staticObjects.push_back(plane);
@@ -106,12 +104,14 @@ void createScenes()
     {
         Camera camera(width, height, 45);
         camera.position = glm::vec3(0, 1, -23);
+        Light light = Light();
+        light.position = glm::vec3(0, 50, -15);
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
         plane.scale = glm::vec3(50);
         RigidBody ball(ballModel, 0.450f, 0.5f, 0.005f);
         ball.scale = glm::vec3(0.22f);
-        ball.initialPosition = glm::vec3(0, 0.22f, -20);
+        ball.initialPosition = glm::vec3(0, 0.11f, -20);
         ball.initialLinearVelocity = glm::vec3(5, 5, 20);
         ball.initialAngularVelocity = glm::vec3(-20, -40, 0);
         Scene pingPongScene(camera, light, shader, depthShader);

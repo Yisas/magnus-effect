@@ -47,7 +47,9 @@ float calculateShadow(vec4 fragmentLightSpacePosition)
     // prevent creation of shadows outside of the light frustum
     if(projectionCoordinates.z > 1.0)
         shadow = 0.0;
-        
+
+    shadow /= 0.5 * distance(fragmentPosition, viewPosition);
+
     return shadow;
 }
 
