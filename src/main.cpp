@@ -211,6 +211,7 @@ void createGUI()
     
     gui->addGroup("Preset");
     nanogui::ref<ComboBox> presetBox = new ComboBox(optionsWindow, presets);
+    presetBox->setFontSize(16);    
     presetBox->setSelectedIndex(preset);
     presetBox->setCallback([&](const int value)
     {
@@ -219,7 +220,7 @@ void createGUI()
         resetScene();
         createGUI();
     });
-    gui->addWidget("Load", presetBox);
+    gui->addWidget("Scene", presetBox);
     
     gui->addGroup("Ball");
     RigidBody &ball = scene->dynamicObjects[0];

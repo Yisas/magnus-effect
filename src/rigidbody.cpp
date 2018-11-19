@@ -87,7 +87,8 @@ void RigidBody::checkCollision()
 {
     if (position.y - scale.y <= GROUND_COORDINATE)
     {
-        position.y = GROUND_COORDINATE + scale.y;
+        float penetration = GROUND_COORDINATE + scale.y - position.y;
+        position -= penetration / -linearVelocity.y * linearVelocity;
         linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) * bounciness;
         angularMomentum *= bounciness;
     }
