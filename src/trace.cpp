@@ -2,7 +2,6 @@
 
 using namespace std;
 
-const float Trace::WIDTH = 1.5f;
 const float Trace::DELTA = 0.01f;
 const glm::vec3 Trace::COLOR = glm::vec3(1.0f, 0.5f, 0.2f);
 const glm::vec3 Trace::PREVIOUS_COLOR = glm::vec3(0.75f, 0.3f, 0.1f);
@@ -61,9 +60,7 @@ void Trace::drawSeries(vector<glm::vec3> &series, glm::vec3 color)
 
     // draw series
     shader->setVec3("color", color);
-    glLineWidth(WIDTH);
     glDrawArrays(GL_LINE_STRIP, 0, series.size());
-    glLineWidth(1);
 
     // free resources
     glBindBuffer(GL_ARRAY_BUFFER, 0); 

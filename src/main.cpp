@@ -17,6 +17,8 @@ using namespace std;
 const string TITLE = "Magnus Effect";
 int width = 1600, height = 900;
 float lastFrame, deltaTime;
+float effectiveDeltaTime = 0;
+float timeStep = 0.01f;
 float playbackSpeed = 1;
 bool playing = false;
 bool traceTrajectory;
@@ -43,6 +45,7 @@ void createWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     glfwWindowHint(GLFW_SAMPLES, 4);
     
@@ -351,7 +354,7 @@ void run()
     while (glfwWindowShouldClose(window) == false)
     {
         float currentFrame = glfwGetTime();
-        deltaTime = (currentFrame - lastFrame) * playbackSpeed;
+        deltaTime = (currentFrame - lastFrame);
         lastFrame = currentFrame;
 
         // clear frame
@@ -366,9 +369,14 @@ void run()
         // update scene
         if (playing)
         {
-            if (traceTrajectory)
-                trace->update();
-            scene->update(deltaTime);
+            effectiveDeltaTime += deltaTime * playbackSpeed;
+            while (effectiveDeltaTime / timeStep >= 1)
+            {
+                if (traceTrajectory)
+                    trace->update();
+                scene->update(timeStep);
+                effectiveDeltaTime -= timeStep;
+            }
         }
 
         // draw scene

@@ -9,7 +9,6 @@
 class Trace
 {
 public:
-    const static float WIDTH; // trace line width
     const static float DELTA; // minimum distance between series points
     const static glm::vec3 COLOR; // color of the trace
     const static glm::vec3 PREVIOUS_COLOR; // color of the previous trace series
