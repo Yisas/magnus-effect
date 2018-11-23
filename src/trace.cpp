@@ -49,6 +49,11 @@ void Trace::draw()
 
 void Trace::drawSeries(vector<glm::vec3> &series, glm::vec3 color)
 {
+    if (series.size() == 0)
+    {
+        return;
+    }
+
     // create buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
