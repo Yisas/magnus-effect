@@ -26,8 +26,11 @@ bool traceTrajectory;
 // Drag coeficient constants
 const float drag_ChoLeutheusser = 0.000207f;
 const float drag_AdairGiordano = 0.00041f;
-// This drag coefficient should correspond to the one found to most resemble the captured model
-const float drag_Ours = 0.0001f;
+// The John Wesson coefficient needs to be multiplied by (radius * crossSection) of the ball
+const float drag_Wesson = 0.3f;
+// These final drag coefficients should correspond to the ones found to most resemble the captured model
+const float drag_OursPingPong = 0.0001f;
+const float drag_OursSoccer = 0.45f;
 
 GLFWwindow* window;
 nanogui::ref<Screen> screen;
@@ -266,9 +269,26 @@ void createGUI()
     );
     gui->addVariable("Mass", scene->dynamicObjects[0].mass);
 
-	vector<pair<string, float>> presetDragValues = {
-		pair<string, float>("Default", drag_Ours), pair<string, float>("Cho-Leutheusser", drag_ChoLeutheusser), pair<string, float>("Adair-Giordano", drag_AdairGiordano)
-	};
+	vector<pair<string, float>> presetDragValues;
+	if (preset == 0) {
+		presetDragValues = 
+		{
+			pair<string, float>("Default", drag_OursPingPong),
+			pair<string, float>("Cho-Leutheusser", drag_ChoLeutheusser),
+			pair<string, float>("Adair-Giordano", drag_AdairGiordano)
+		};
+	}
+	else {
+		float radius = scene->dynamicObjects[0].scale.x / 2;
+		float crossSection = glm::pi<float>()*radius*radius;
+
+		presetDragValues = 
+		{
+			pair<string, float>("Default", drag_OursSoccer),
+			pair<string, float>("Wesson", drag_Wesson * radius * crossSection)
+		};
+	}
+
 	gui->addWidget("Preset drag constants", createAttributeTogglerWidget(optionsWindow, presetDragValues, &scene->dynamicObjects[0].drag, gui));
 	gui->addVariable("Drag", scene->dynamicObjects[0].drag);
 
