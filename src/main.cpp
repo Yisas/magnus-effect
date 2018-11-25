@@ -23,6 +23,12 @@ float playbackSpeed = 1;
 bool playing = false;
 bool traceTrajectory;
 
+// Drag coeficient constants
+const float drag_ChoLeutheusser = 0.000207f;
+const float drag_AdairGiordano = 0.00041f;
+// This drag coefficient should correspond to the one found to most resemble the captured model
+const float drag_Ours = 0.0001f;
+
 GLFWwindow* window;
 nanogui::ref<Screen> screen;
 nanogui::ref<FloatBox<float>> speedBox;
@@ -201,6 +207,33 @@ nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
 }
 
 /**
+* Create a widget of a row of buttons to select between preset values for a float variable.
+* togglableValues should be a pair of button captions and the value to set the variable to.
+*/
+nanogui::ref<Widget> createAttributeTogglerWidget(Widget* parent, std::vector<pair<string, float>> togglableValues, float *value, FormHelper *gui)
+{
+	AdvancedGridLayout* parentLayout = (AdvancedGridLayout*)parent->layout();
+	if (parentLayout->rowCount() > 0)
+		parentLayout->appendRow(5);
+	nanogui::ref<Widget> attributeToggler = new Widget(parent);
+	nanogui::ref<BoxLayout> layout = new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 3);
+	attributeToggler->setLayout(layout);
+	
+	int i = 0;
+	for (pair<string, float> var : togglableValues)
+	{
+		nanogui::ref<Button> box = new Button(attributeToggler, togglableValues[i].first);
+		box->setCallback([togglableValues, value, i, gui] {
+			*value = togglableValues[i].second;
+			gui->refresh();
+		});
+		i++;
+	}
+	
+	return attributeToggler;
+}
+
+/**
  * Create the application GUI.
  */
 void createGUI()
@@ -232,7 +265,13 @@ void createGUI()
         [=]() { return scene->dynamicObjects[0].scale.x; }
     );
     gui->addVariable("Mass", scene->dynamicObjects[0].mass);
-    gui->addVariable("Drag", scene->dynamicObjects[0].drag);
+
+	vector<pair<string, float>> presetDragValues = {
+		pair<string, float>("Default", drag_Ours), pair<string, float>("Cho-Leutheusser", drag_ChoLeutheusser), pair<string, float>("Adair-Giordano", drag_AdairGiordano)
+	};
+	gui->addWidget("Preset drag constants", createAttributeTogglerWidget(optionsWindow, presetDragValues, &scene->dynamicObjects[0].drag, gui));
+	gui->addVariable("Drag", scene->dynamicObjects[0].drag);
+
     gui->addVariable("Bounciness", scene->dynamicObjects[0].bounciness);
     gui->addWidget("Initial position", createVectorBox(optionsWindow, &ball.initialPosition));
     gui->addWidget("Linear velocity", createVectorBox(optionsWindow, &ball.initialLinearVelocity));
