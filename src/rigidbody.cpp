@@ -53,6 +53,12 @@ void RigidBody::initialize(fileReader::DataEntry dataEntry)
 		initialAngularVelocity = glm::vec3(0, 0, 0);
 		break;
 	}
+
+	initialLinearVelocity = glm::vec3(
+		-cos(dataEntry.initialAngle - 90) * dataEntry.initialVelocity,
+		sin(dataEntry.initialAngle - 90) * dataEntry.initialVelocity,
+		0
+	);
 	
 	initialize();
 }
