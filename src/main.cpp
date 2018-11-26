@@ -37,6 +37,7 @@ nanogui::ref<Screen> screen;
 nanogui::ref<FloatBox<float>> speedBox;
 nanogui::ref<Slider> speedSlider;
 nanogui::ref<Button> playButton;
+FormHelper *gui;
 
 vector<string> presets = { "Ping Pong", "Soccer" };
 unsigned int preset;
@@ -145,6 +146,7 @@ void resetScene()
     playButton->setCaption("Play");
     scene->initialize();
     trace->reset();
+	gui->refresh();
 }
 
 /**
@@ -245,7 +247,7 @@ void createGUI()
     
     screen = new Screen();
     screen->initialize(window, true);
-    FormHelper *gui = new FormHelper(screen.get());
+    gui = new FormHelper(screen.get());
     nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(20, 20), "Simulation");
     
     gui->addGroup("Preset");
@@ -305,6 +307,12 @@ void createGUI()
     gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
     gui->addVariable("Trace trajectory", traceTrajectory);
     gui->addVariable("Keep previous", Trace::keepPrevious);
+
+	gui->addVariable("Peak height", ball.peakHeight, false);
+	gui->addVariable("Peak horizontal velocity", ball.peakLinearVelocity.x, false);
+	gui->addVariable("Peak vectical velocity", ball.peakLinearVelocity.y, false);
+	gui->addVariable("Peak sideways velocity", ball.peakLinearVelocity.z, false);
+	gui->addVariable("Horizontal travel", ball.horizontalDisplacementAtBounce, false);
 
     gui->addGroup("Controls");
     speedBox = gui->addVariable("Playback speed", playbackSpeed);
@@ -434,6 +442,7 @@ void run()
                 if (traceTrajectory)
                     trace->update();
                 scene->update(timeStep);
+				gui->refresh();
                 effectiveDeltaTime -= timeStep;
             }
         }

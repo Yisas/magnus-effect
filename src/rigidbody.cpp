@@ -29,6 +29,11 @@ void RigidBody::initialize()
     linearVelocity = initialLinearVelocity;
     angularVelocity = initialAngularVelocity;
     angularMomentum = bodySpaceInertiaTensor * angularVelocity;
+
+	peakHeight = position.y;
+	peakLinearVelocity = linearVelocity;
+	horizontalDisplacementAtBounce = 0;
+	hasBounced = false;
 }
 
 void RigidBody::update(float deltaTime)
@@ -52,6 +57,16 @@ void RigidBody::update(float deltaTime)
         * transpose(glm::mat3(rotation));
     angularVelocity = inertiaTensorInverse * angularMomentum;
     rotation *= glm::quat(angularVelocity * deltaTime);
+
+	// Check for peak values
+	if (position.y > peakHeight)
+		peakHeight = position.y;
+	if (abs(linearVelocity.x) > abs(peakLinearVelocity.x))
+		peakLinearVelocity.x = linearVelocity.x;
+	if (abs(linearVelocity.y) > abs(peakLinearVelocity.y))
+		peakLinearVelocity.y = linearVelocity.y;
+	if (abs(linearVelocity.z) > abs(peakLinearVelocity.z))
+		peakLinearVelocity.z = linearVelocity.z;
 
     // clean up
     forces.clear();
@@ -91,5 +106,12 @@ void RigidBody::checkCollision()
         position -= penetration / -linearVelocity.y * linearVelocity;
         linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) * bounciness;
         angularMomentum *= bounciness;
+
+		// Record deltaX at bounce
+		if (!hasBounced) 
+		{
+			horizontalDisplacementAtBounce = position.x - initialPosition.x;
+			hasBounced = true;
+		}
     }
 }

@@ -14,12 +14,18 @@ public:
     float mass;
     float drag;
     float bounciness;
+	bool hasBounced = false;
 
     // initial conditions
     glm::vec3 initialPosition = glm::vec3(0, 0, 0);
     glm::quat initialRotation = glm::mat3(1);
     glm::vec3 initialLinearVelocity = glm::vec3(0, 0, 0);
     glm::vec3 initialAngularVelocity = glm::vec3(0, 0, 0);
+
+	// Aditional attributes for display
+	float peakHeight = 0;
+	glm::vec3 peakLinearVelocity = initialLinearVelocity;
+	float horizontalDisplacementAtBounce = 0;
 
     /**
      * Create a new rigid body for the given model.
