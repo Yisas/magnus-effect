@@ -6,6 +6,7 @@
 #include "rigidbody.h"
 #include "scene.h"
 #include "trace.h"
+#include "fileReader.h"
 
 #include <nanogui/nanogui.h>
 #include <iostream>
@@ -342,6 +343,15 @@ void createGUI()
             resetScene();
         }
     });
+
+	gui->addButton("Load from file", [&ball]() 
+	{
+		fileReader fr = fileReader();
+		resetScene();
+		ball.initialize(fr.getReadDataEntries()[0]);
+		gui->refresh();
+	});
+
     screen->setVisible(true);
     screen->performLayout();
 

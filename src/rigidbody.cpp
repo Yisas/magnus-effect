@@ -36,6 +36,27 @@ void RigidBody::initialize()
 	hasBounced = false;
 }
 
+void RigidBody::initialize(fileReader::DataEntry dataEntry)
+{
+	initialPosition = glm::vec3(0, dataEntry.initialHeight, 0);
+	initialRotation = glm::mat3(1);
+
+	switch (dataEntry.spinType)
+	{
+	case fileReader::SpinType::BackSpin:
+		initialAngularVelocity = glm::vec3(0, dataEntry.rotVelocity, 0);
+		break;
+	case fileReader::SpinType::Topspin:
+		initialAngularVelocity = glm::vec3(0, -dataEntry.rotVelocity, 0);
+		break;
+	default:
+		initialAngularVelocity = glm::vec3(0, 0, 0);
+		break;
+	}
+	
+	initialize();
+}
+
 void RigidBody::update(float deltaTime)
 {
     // forces

@@ -4,6 +4,7 @@
 
 fileReader::fileReader()
 {
+	loadFile();
 }
 
 
@@ -57,7 +58,7 @@ bool fileReader::loadFile()
 			dataEntry.horizontalDisplacement = stof(line.substr(previous, current - previous));
 			nextPosition(line, previous, current);
 
-			numberOfReadLines++;
+			readDataEntries.push_back(dataEntry);
 		}
 
 		file.close();

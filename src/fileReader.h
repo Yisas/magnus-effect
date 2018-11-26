@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 using namespace std;
 
 /**
@@ -7,8 +8,8 @@ using namespace std;
 **/
 class fileReader
 {
+public:
 	enum SpinType { BackSpin, Topspin, None };
-
 	struct DataEntry
 	{
 		float initialHeight;
@@ -20,13 +21,15 @@ class fileReader
 		float horizontalDisplacement;
 	};
 
-public:
 	fileReader();
 	~fileReader();
-	
+
+	vector<DataEntry> getReadDataEntries() { return readDataEntries; }
+
 private:
 	const string fileAddress = "Data.txt";
 	int numberOfReadLines = 0;
+	vector<DataEntry> readDataEntries;
 
 	bool loadFile();
 	void nextPosition(string line, std::size_t &previous, std::size_t &current);
