@@ -24,6 +24,15 @@ float playbackSpeed = 1;
 bool playing = false;
 bool traceTrajectory;
 
+// Automation attributes
+const float automationIterationTime = 3.0f;
+bool automating = false;
+// Data entries read from file use to automate the simulation
+vector<fileReader::DataEntry> dataEntries;
+// Start time of the current iteration of the automation
+float iterationStartFrame = 0;
+int currentDataEntryIndex = 0;
+
 // Drag coeficient constants
 const float drag_ChoLeutheusser = 0.000207f;
 const float drag_AdairGiordano = 0.00041f;
@@ -347,9 +356,13 @@ void createGUI()
 	gui->addButton("Load from file", [&ball]() 
 	{
 		fileReader fr = fileReader();
+		dataEntries = fr.getReadDataEntries();
 		resetScene();
-		ball.initialize(fr.getReadDataEntries()[0]);
+		ball.initialize(dataEntries[0]);
 		gui->refresh();
+		iterationStartFrame = glfwGetTime();
+		playing = true;
+		automating = true;
 	});
 
     screen->setVisible(true);
@@ -422,6 +435,18 @@ void createGUI()
 }
 
 /**
+* Set initial values of the simulation to match the ones in the current data entry from file
+**/
+void prepareNextAutomationIteration() 
+{
+	resetScene();
+	playing = true;
+	scene->dynamicObjects[0].initialize(dataEntries[currentDataEntryIndex]);
+	iterationStartFrame = glfwGetTime();
+	gui->refresh();
+}
+
+/**
  * Run the application main loop.
  */
 void run()
@@ -443,19 +468,44 @@ void run()
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_MULTISAMPLE);
 
-        // update scene
-        if (playing)
-        {
-            effectiveDeltaTime += deltaTime * playbackSpeed;
-            while (effectiveDeltaTime / timeStep >= 1)
-            {
-                if (traceTrajectory)
-                    trace->update();
-                scene->update(timeStep);
+		// update scene
+		if (playing)
+		{
+			effectiveDeltaTime += deltaTime * playbackSpeed;
+
+			if (automating)
+			{
+				currentFrame = glfwGetTime();
+
+				// If we've reached the end of this iteration of the automation...
+				if (currentFrame - iterationStartFrame >= automationIterationTime)
+				{
+					currentDataEntryIndex++;
+
+					// ... check to see if done with automating and stop...
+					if (currentDataEntryIndex >= dataEntries.size())
+					{
+						resetScene();
+						playing = false;
+						automating = false;
+					}
+					// ... reset initial values to next iteration and play again
+					else 
+					{
+						prepareNextAutomationIteration();
+					}
+				}
+			}
+
+			while (effectiveDeltaTime / timeStep >= 1)
+			{
+				if (traceTrajectory)
+					trace->update();
+				scene->update(timeStep);
 				gui->refresh();
-                effectiveDeltaTime -= timeStep;
-            }
-        }
+				effectiveDeltaTime -= timeStep;
+			}
+		}
 
         // draw scene
         scene->draw();
