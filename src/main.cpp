@@ -171,6 +171,18 @@ void loadScene()
 }
 
 /**
+* Set initial values of the simulation to match the ones in the current data entry from file
+**/
+void prepareNextAutomationIteration()
+{
+	resetScene();
+	playing = true;
+	scene->dynamicObjects[0].initialize(dataEntries[currentDataEntryIndex]);
+	iterationStartFrame = glfwGetTime();
+	gui->refresh();
+}
+
+/**
  * Create a composite box widget to input a vector value.
  */
 nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
@@ -353,17 +365,15 @@ void createGUI()
         }
     });
 
-	gui->addButton("Load from file", [&ball]() 
-	{
-		fileReader fr = fileReader();
-		dataEntries = fr.getReadDataEntries();
-		resetScene();
-		ball.initialize(dataEntries[0]);
-		gui->refresh();
-		iterationStartFrame = glfwGetTime();
-		playing = true;
-		automating = true;
-	});
+	if(preset == 0)
+		gui->addButton("Automate from file", [&ball]() 
+		{
+			fileReader fr = fileReader();
+			dataEntries = fr.getReadDataEntries();
+			currentDataEntryIndex = 0;
+			automating = true;
+			prepareNextAutomationIteration();
+		});
 
     screen->setVisible(true);
     screen->performLayout();
@@ -432,18 +442,6 @@ void createGUI()
             scene->camera.height = height;
         }
     );
-}
-
-/**
-* Set initial values of the simulation to match the ones in the current data entry from file
-**/
-void prepareNextAutomationIteration() 
-{
-	resetScene();
-	playing = true;
-	scene->dynamicObjects[0].initialize(dataEntries[currentDataEntryIndex]);
-	iterationStartFrame = glfwGetTime();
-	gui->refresh();
 }
 
 /**
