@@ -56,6 +56,7 @@ nanogui::ref<Screen> screen;
 nanogui::ref<FloatBox<float>> speedBox;
 nanogui::ref<Slider> speedSlider;
 nanogui::ref<Button> playButton;
+nanogui::ref<Button> automateButton;
 FormHelper *gui;
 
 vector<string> presets = { "Ping Pong", "Soccer" };
@@ -407,18 +408,31 @@ void createGUI()
 
 	if (preset == 0) 
 	{
-		gui->addButton("Automate from file", [&ball]()
-		{
-			fileReader fr = fileReader();
-			dataEntries = fr.getReadDataEntries();
-			currentDataEntryIndex = 0;
-			automationValuesToCompare.clear();
-			automating = true;
-			prepareNextAutomationIteration();
-		});
+		gui->addGroup("Model-simulation analysis");
 
 		gui->addVariable("Peak height MAPD (%)", peakHeightMAPD, false);
 		gui->addVariable("Horizontal travel MAPD (%)", horizontalDistMAPD, false);
+
+		automateButton = gui->addButton("Automate from file", [&ball]()
+		{
+			if (!automating) 
+			{
+				fileReader fr = fileReader();
+				dataEntries = fr.getReadDataEntries();
+				currentDataEntryIndex = 0;
+				automationValuesToCompare.clear();
+				automating = true;
+				prepareNextAutomationIteration();
+				automateButton->setCaption("Stop automation");
+			}
+			else
+			{
+				automateButton->setCaption("Automate from file");
+				resetScene();
+				playing = false;
+				automating = false;
+			}
+		});
 	}
 
     screen->setVisible(true);
