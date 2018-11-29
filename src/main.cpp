@@ -332,7 +332,7 @@ void createGUI()
         [=](float size) { scene->dynamicObjects[0].scale = glm::vec3(size); },
         [=]() { return scene->dynamicObjects[0].scale.x; }
     );
-    gui->addVariable("Mass", scene->dynamicObjects[0].mass);
+    gui->addVariable("Mass (kg)", scene->dynamicObjects[0].mass);
 
 	vector<pair<string, float>> presetDragValues;
 	if (preset == 0) {
@@ -358,24 +358,24 @@ void createGUI()
 	gui->addVariable("Drag", scene->dynamicObjects[0].drag);
 
     gui->addVariable("Bounciness", scene->dynamicObjects[0].bounciness);
-    gui->addWidget("Initial position", createVectorBox(optionsWindow, &ball.initialPosition));
-    gui->addWidget("Linear velocity", createVectorBox(optionsWindow, &ball.initialLinearVelocity));
-    gui->addWidget("Angular velocity", createVectorBox(optionsWindow, &ball.initialAngularVelocity));
+    gui->addWidget("Initial position (m)", createVectorBox(optionsWindow, &ball.initialPosition));
+    gui->addWidget("Linear velocity (m/s)", createVectorBox(optionsWindow, &ball.initialLinearVelocity));
+    gui->addWidget("Angular velocity (rads/s)", createVectorBox(optionsWindow, &ball.initialAngularVelocity));
     gui->addVariable("Gravitational force", RigidBody::useGravity);
     gui->addVariable("Magnus force", RigidBody::useMagnusForce);
 
     gui->addGroup("Rendering");
     Camera &camera = scene->camera;
-    gui->addWidget("Camera position", createVectorBox(optionsWindow, &camera.position));
+    gui->addWidget("Camera position (m)", createVectorBox(optionsWindow, &camera.position));
     gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
     gui->addVariable("Trace trajectory", traceTrajectory);
     gui->addVariable("Keep previous", Trace::keepPrevious);
 
-	gui->addVariable("Peak height", ball.peakHeight, false);
-	gui->addVariable("Peak horizontal velocity", ball.peakLinearVelocity.x, false);
-	gui->addVariable("Peak vectical velocity", ball.peakLinearVelocity.y, false);
-	gui->addVariable("Peak sideways velocity", ball.peakLinearVelocity.z, false);
-	gui->addVariable("Horizontal travel", ball.horizontalDisplacementAtBounce, false);
+	gui->addVariable("Peak height (m)", ball.peakHeight, false);
+	gui->addVariable("Peak horizontal velocity (m/s)", ball.peakLinearVelocity.x, false);
+	gui->addVariable("Peak vectical velocity (m/s)", ball.peakLinearVelocity.y, false);
+	gui->addVariable("Peak sideways velocity (m/s)", ball.peakLinearVelocity.z, false);
+	gui->addVariable("Horizontal travel (m)", ball.horizontalDisplacementAtBounce, false);
 
     gui->addGroup("Controls");
     speedBox = gui->addVariable("Playback speed", playbackSpeed);
