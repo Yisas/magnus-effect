@@ -51,6 +51,8 @@ int currentDataEntryIndex = 0;
 vector<pair<float, float>> automationValuesToCompare;
 float peakHeightMAPD = 0;
 float horizontalDistMAPD = 0;
+// The plane will be rescaled during automation for aesthetic purposes
+int planeScaleMultiplier = 2;
 
 // Drag coeficient constants
 const float drag_ChoLeutheusser = 0.000207f;
@@ -243,6 +245,7 @@ void stopAutomating()
 {
 	automateButton->setCaption("Automate from file");
 	resetScene();
+	scene->staticObjects[0].scale.x /= planeScaleMultiplier;
 	playing = false;
 	automating = false;
 }
@@ -471,6 +474,7 @@ void createGUI()
 				automating = true;
 				prepareNextAutomationIteration();
 				automateButton->setCaption("Stop automation");
+				scene->staticObjects[0].scale.x *= planeScaleMultiplier;
 			}
 			else
 			{
