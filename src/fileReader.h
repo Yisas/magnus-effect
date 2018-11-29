@@ -27,7 +27,7 @@ public:
 	vector<DataEntry> getReadDataEntries() { return readDataEntries; }
 
 private:
-	const string fileAddress = "Data.txt";
+	const string fileAddress = "data.csv";
 	int numberOfReadLines = 0;
 	vector<DataEntry> readDataEntries;
 

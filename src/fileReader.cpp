@@ -23,9 +23,11 @@ bool fileReader::loadFile()
 {
 	ifstream file(fileAddress);
 	if (file.is_open()) {
-		//int numOfReadKeyframes = 0;
-		//std::vector<Quaternion> readQuaternions;	// Store local quaternions for this set of joints
 		string line;
+
+		// Ignore first 2 lines
+		getline(file, line);
+		getline(file, line);
 
 		while (getline(file, line))
 		{
@@ -36,13 +38,24 @@ bool fileReader::loadFile()
 			// Skip the first entry since it's just the title
 			nextPosition(line, previous, current);
 
+			if (line.substr(previous, current - previous) == "")
+				continue;
+
 			dataEntry.initialHeight = stof(line.substr(previous, current - previous));
 			nextPosition(line, previous, current);
 			dataEntry.initialAngle = stof(line.substr(previous, current - previous));
 			nextPosition(line, previous, current);
 			dataEntry.initialVelocity = stof(line.substr(previous, current - previous));
 			nextPosition(line, previous, current);
+
+			// Skip the rots per second angular velocity
+			nextPosition(line, previous, current);
+
+			// Use the rads per second angular velocity
 			dataEntry.rotVelocity = stof(line.substr(previous, current - previous));
+			nextPosition(line, previous, current);
+
+			// Skip m/s angular velocity
 			nextPosition(line, previous, current);
 
 			if (line.substr(previous, current - previous) == "Back Spin")

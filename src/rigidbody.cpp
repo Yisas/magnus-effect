@@ -44,10 +44,10 @@ void RigidBody::initialize(fileReader::DataEntry dataEntry)
 	switch (dataEntry.spinType)
 	{
 	case fileReader::SpinType::BackSpin:
-		initialAngularVelocity = glm::vec3(0, dataEntry.rotVelocity, 0);
+		initialAngularVelocity = glm::vec3(0, 0, dataEntry.rotVelocity);
 		break;
 	case fileReader::SpinType::Topspin:
-		initialAngularVelocity = glm::vec3(0, -dataEntry.rotVelocity, 0);
+		initialAngularVelocity = glm::vec3(0, 0, -dataEntry.rotVelocity);
 		break;
 	default:
 		initialAngularVelocity = glm::vec3(0, 0, 0);
@@ -55,10 +55,12 @@ void RigidBody::initialize(fileReader::DataEntry dataEntry)
 	}
 
 	initialLinearVelocity = glm::vec3(
-		-cos(dataEntry.initialAngle - 90) * dataEntry.initialVelocity,
-		sin(dataEntry.initialAngle - 90) * dataEntry.initialVelocity,
+		cos((180.0f - dataEntry.initialAngle) * glm::pi<float>() / 180.0f),
+		sin((180.0f - dataEntry.initialAngle) * glm::pi<float>() / 180.0f),
 		0
 	);
+	initialLinearVelocity = glm::normalize(initialLinearVelocity);
+	initialLinearVelocity *= dataEntry.initialVelocity;
 	
 	initialize();
 }
