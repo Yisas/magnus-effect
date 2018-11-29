@@ -22,10 +22,18 @@ float lastFrame, deltaTime;
 float effectiveDeltaTime = 0;
 float timeStep = 0.01f;
 float playbackSpeed = 1;
-const float cameraScrollSpeed = 0.05f;
 bool playing = false;
 bool traceTrajectory = false;
 bool traceDirection = false;
+
+// Camera control
+const float cameraScrollSpeed = 0.05f;
+const float cameraDragSpeed = 0.01f;
+double cameraXposDragStart;
+double cameraYposDragStart;
+double cameraXpos;
+double cameraYpos;
+bool cameraDragging = false;
 
 // Automation attributes
 float automationIterationTime = 3.0f;
@@ -104,12 +112,31 @@ void createWindow()
 /**
 * Zoom in/out mouse wheel scroll event
 **/
-void mouseWheelScrollCallbackEvent(GLFWwindow* window, double xoffset, double yoffset)
+void cameraZoomCallbackEvent(double xoffset, double yoffset)
 {
 	if(yoffset < 0)
 		scene->camera.position.z -= cameraScrollSpeed;
 	else
 		scene->camera.position.z += cameraScrollSpeed;
+}
+
+void cameraDragCallbackEvent(int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_RIGHT)
+	{
+		glfwGetCursorPos(window, &cameraXpos, &cameraYpos);
+
+		if (action == GLFW_PRESS)
+		{
+			cameraDragging = true;
+			cameraXposDragStart = cameraXpos;
+			cameraYposDragStart = cameraYpos;
+		}
+		else if (action == GLFW_RELEASE)
+		{
+			cameraDragging = false;
+		}
+	}
 }
 
 /**
@@ -234,7 +261,7 @@ void calculateMAPD()
 	for(n; n < automationValuesToCompare.size(); n++)
 	{
 		peakHeightMAPD += abs((dataEntries[n].peakHeight - automationValuesToCompare[n].first) / dataEntries[n].peakHeight);
-		horizontalDistMAPD += abs((dataEntries[n].horizontalDisplacement - abs(automationValuesToCompare[n].second)) / dataEntries[n].horizontalDisplacement);
+		horizontalDistMAPD += abs((abs(dataEntries[n].horizontalDisplacement) - abs(automationValuesToCompare[n].second)) / dataEntries[n].horizontalDisplacement);
 	}
 
 	peakHeightMAPD, horizontalDistMAPD *= (100 / n);
@@ -383,7 +410,6 @@ void createGUI()
 
     gui->addGroup("Rendering");
     Camera &camera = scene->camera;
-    gui->addWidget("Camera position (m)", createVectorBox(optionsWindow, &camera.position));
     gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
     gui->addVariable("Display velocity", traceDirection);
     gui->addVariable("Trace trajectory", traceTrajectory);
@@ -469,6 +495,7 @@ void createGUI()
         [](GLFWwindow *, int button, int action, int modifiers)
         {
             screen->mouseButtonCallbackEvent(button, action, modifiers);
+			cameraDragCallbackEvent(button, action, modifiers);
         }
     );
 
@@ -506,6 +533,7 @@ void createGUI()
         [](GLFWwindow *, double x, double y)
         {
             screen->scrollCallbackEvent(x, y);
+			cameraZoomCallbackEvent(x, y);
        }
     );
 
@@ -531,6 +559,15 @@ void run()
     lastFrame = glfwGetTime();
     while (glfwWindowShouldClose(window) == false)
     {
+		if (cameraDragging) 
+		{
+			glfwGetCursorPos(window, &cameraXpos, &cameraYpos);
+			scene->camera.position.x += (cameraXpos - cameraXposDragStart) * cameraDragSpeed;
+			scene->camera.position.y += (cameraYpos - cameraYposDragStart) * cameraDragSpeed;
+			cameraXposDragStart = cameraXpos;
+			cameraYposDragStart = cameraYpos;
+		}
+
         float currentFrame = glfwGetTime();
         deltaTime = (currentFrame - lastFrame);
         lastFrame = currentFrame;
@@ -613,7 +650,6 @@ int main()
     createWindow();
     createScenes();
     createGUI();
-	glfwSetScrollCallback(window, mouseWheelScrollCallbackEvent);
     run();
 
     glfwTerminate();
