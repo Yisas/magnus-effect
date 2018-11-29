@@ -22,6 +22,10 @@ public:
     glm::quat initialRotation = glm::mat3(1);
     glm::vec3 initialLinearVelocity = glm::vec3(0, 0, 0);
     glm::vec3 initialAngularVelocity = glm::vec3(0, 0, 0);
+    
+    // attributes
+    glm::vec3 linearVelocity = glm::vec3(0, 0, 0);
+    glm::vec3 angularVelocity = glm::vec3(0, 0, 0);
 
 	// Aditional attributes for display
 	float peakHeight = 0;
@@ -58,11 +62,6 @@ private:
     glm::vec3 centerOfMass;
     glm::mat3 bodySpaceInertiaTensor;
     glm::mat3 bodySpaceInertiaTensorInverse;
-
-    // current state
-    // the current position and rotation are part of transform, the parent class
-    glm::vec3 linearVelocity = glm::vec3(0, 0, 0);
-    glm::vec3 angularVelocity = glm::vec3(0, 0, 0);
     glm::vec3 angularMomentum = glm::vec3(0, 0, 0);
     std::vector<std::pair<glm::vec3, glm::vec3>> forces; // pairs of force and force position
 

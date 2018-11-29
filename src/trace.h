@@ -45,8 +45,7 @@ public:
 
 private:
     shared_ptr<Shader> shader;
-
-    unsigned int VAO, VBO;
+    
     std::vector<glm::vec3> points;
     std::vector<glm::vec3> previousPoints;
 

@@ -6,6 +6,7 @@
 #include "rigidbody.h"
 #include "scene.h"
 #include "trace.h"
+#include "direction.h"
 #include "fileReader.h"
 
 #include <nanogui/nanogui.h>
@@ -23,7 +24,8 @@ float timeStep = 0.01f;
 float playbackSpeed = 1;
 const float cameraScrollSpeed = 0.05f;
 bool playing = false;
-bool traceTrajectory;
+bool traceTrajectory = false;
+bool traceDirection = false;
 
 // Automation attributes
 const float automationIterationTime = 3.0f;
@@ -64,6 +66,7 @@ unsigned int preset;
 vector<Scene> scenes;
 unique_ptr<Scene> scene;
 unique_ptr<Trace> trace;
+unique_ptr<Direction> direction;
 
 /**
  * Initialize OpenGL and create the application window.
@@ -117,7 +120,7 @@ void createScenes()
     // shaders
     shared_ptr<Shader> shader = make_shared<Shader>("shaders/scene.vert", "shaders/scene.frag");
     shared_ptr<Shader> depthShader = make_shared<Shader>("shaders/depth.vert", "shaders/depth.frag");
-    shared_ptr<Shader> traceShader = make_shared<Shader>("shaders/trace.vert", "shaders/trace.frag");
+    shared_ptr<Shader> lineShader = make_shared<Shader>("shaders/trace.vert", "shaders/trace.frag");
 
     // models
     shared_ptr<Model> planeModel = make_shared<Model>("models/plane.blend");
@@ -131,7 +134,7 @@ void createScenes()
         light.position = glm::vec3(0, 50, 0);
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
-        plane.scale = glm::vec3(2.74f, 1.0f, 1.525f);
+        plane.scale = glm::vec3(2.74f, 1.525f, 1.0f);
         RigidBody ball(ballModel, 0.0027f, 0.75f, 0.0001f);
         ball.scale = glm::vec3(0.04f);
         ball.initialPosition = glm::vec3(-1.0f, 0.5f, 0.0f);
@@ -165,7 +168,8 @@ void createScenes()
     }
 
     scene = make_unique<Scene>(scenes[preset]);
-    trace = make_unique<Trace>(&scene->dynamicObjects[0], &scene->camera, traceShader);
+    trace = make_unique<Trace>(&scene->dynamicObjects[0], &scene->camera, lineShader);
+    direction = make_unique<Direction>(&scene->dynamicObjects[0], &scene->camera, lineShader);
 }
 
 /**
@@ -186,9 +190,14 @@ void resetScene()
 void loadScene()
 {
     scene = make_unique<Scene>(scenes[preset]);
+    RigidBody *newBall = &scene->dynamicObjects[0];
+    Camera *newCamera = &scene->camera;
+
     trace->clear();
-    trace->target = &scene->dynamicObjects[0];
-    trace->camera = &scene->camera;
+    trace->target = newBall;
+    trace->camera = newCamera;
+    direction->target = newBall;
+    direction->camera = newCamera;
 }
 
 /**
@@ -368,6 +377,7 @@ void createGUI()
     Camera &camera = scene->camera;
     gui->addWidget("Camera position (m)", createVectorBox(optionsWindow, &camera.position));
     gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
+    gui->addVariable("Display velocity", traceDirection);
     gui->addVariable("Trace trajectory", traceTrajectory);
     gui->addVariable("Keep previous", Trace::keepPrevious);
 
@@ -575,6 +585,8 @@ void run()
         scene->draw();
         if (traceTrajectory)
             trace->draw();
+        if (traceDirection)
+            direction->draw();
 
         // draw GUI
         screen->drawContents();
