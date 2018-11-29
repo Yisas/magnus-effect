@@ -93,7 +93,7 @@ void createScenes()
         light.position = glm::vec3(0, 50, 0);
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
-        plane.scale = glm::vec3(2.74f, 1.0f, 1.525f);
+        plane.scale = glm::vec3(2.74f, 1.525f, 1.0f);
         RigidBody ball(ballModel, 0.0027f, 0.75f, 0.0001f);
         ball.scale = glm::vec3(0.04f);
         ball.initialPosition = glm::vec3(-1.0f, 0.5f, 0.0f);
