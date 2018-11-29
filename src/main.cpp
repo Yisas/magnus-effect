@@ -50,7 +50,7 @@ const float drag_AdairGiordano = 0.00041f;
 // The John Wesson coefficient needs to be multiplied by (radius * crossSection) of the ball
 const float drag_Wesson = 0.3f;
 // These final drag coefficients should correspond to the ones found to most resemble the captured model
-const float drag_OursPingPong = 0.0001f;
+const float drag_OursPingPong = 0.00005f;
 const float drag_OursSoccer = 0.45f;
 
 GLFWwindow* window;
