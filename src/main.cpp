@@ -32,6 +32,14 @@ vector<fileReader::DataEntry> dataEntries;
 // Start time of the current iteration of the automation
 float iterationStartFrame = 0;
 int currentDataEntryIndex = 0;
+/**
+* The values recorded during automation of the data entry iterations, to be used for 
+* mean absolute percentage deviation (MAPD) analysis with the model data.
+* First value should be peakHeight, second value should be horizontalDisplacementAtBounce
+**/
+vector<pair<float, float>> automationValuesToCompare;
+float peakHeightMAPD = 0;
+float horizontalDistMAPD = 0;
 
 // Drag coeficient constants
 const float drag_ChoLeutheusser = 0.000207f;
@@ -180,6 +188,26 @@ void prepareNextAutomationIteration()
 	scene->dynamicObjects[0].initialize(dataEntries[currentDataEntryIndex]);
 	iterationStartFrame = glfwGetTime();
 	gui->refresh();
+}
+
+/**
+* Mean absolute percentage deviation analysis performed over the model and automated simulation values of the
+* peak height and horizontalDisplacementAtBounce, respectively.
+* M = (100%/n) * abs((At-Ft)/At)); where At is the actual value and Ft is the forecasted one.
+**/
+void calculateMAPD() 
+{
+	peakHeightMAPD = 0;
+	horizontalDistMAPD = 0;
+
+	int n = 0;
+	for(n; n < automationValuesToCompare.size(); n++)
+	{
+		peakHeightMAPD += abs((dataEntries[n].peakHeight - automationValuesToCompare[n].first) / dataEntries[n].peakHeight);
+		horizontalDistMAPD += abs((dataEntries[n].horizontalDisplacement - automationValuesToCompare[n].second) / dataEntries[n].horizontalDisplacement);
+	}
+
+	peakHeightMAPD, horizontalDistMAPD *= (100 / n);
 }
 
 /**
@@ -365,15 +393,21 @@ void createGUI()
         }
     });
 
-	if(preset == 0)
-		gui->addButton("Automate from file", [&ball]() 
+	if (preset == 0) 
+	{
+		gui->addButton("Automate from file", [&ball]()
 		{
 			fileReader fr = fileReader();
 			dataEntries = fr.getReadDataEntries();
 			currentDataEntryIndex = 0;
+			automationValuesToCompare.clear();
 			automating = true;
 			prepareNextAutomationIteration();
 		});
+
+		gui->addVariable("Peak height MAPD (%)", peakHeightMAPD, false);
+		gui->addVariable("Horizontal travel MAPD (%)", horizontalDistMAPD, false);
+	}
 
     screen->setVisible(true);
     screen->performLayout();
@@ -466,6 +500,8 @@ void run()
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_MULTISAMPLE);
 
+		RigidBody &ball = scene->dynamicObjects[0];
+
 		// update scene
 		if (playing)
 		{
@@ -479,6 +515,10 @@ void run()
 				if (currentFrame - iterationStartFrame >= automationIterationTime)
 				{
 					currentDataEntryIndex++;
+
+					// Record peak values for statistical analysis, compute new MAPD
+					automationValuesToCompare.push_back(pair<float, float>(ball.peakHeight, ball.horizontalDisplacementAtBounce));
+					calculateMAPD();
 
 					// ... check to see if done with automating and stop...
 					if (currentDataEntryIndex >= dataEntries.size())
