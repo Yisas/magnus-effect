@@ -21,6 +21,7 @@ float lastFrame, deltaTime;
 float effectiveDeltaTime = 0;
 float timeStep = 0.01f;
 float playbackSpeed = 1;
+const float cameraScrollSpeed = 0.05f;
 bool playing = false;
 bool traceTrajectory;
 
@@ -94,6 +95,17 @@ void createWindow()
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
+}
+
+/**
+* Zoom in/out mouse wheel scroll event
+**/
+void mouseWheelScrollCallbackEvent(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if(yoffset < 0)
+		scene->camera.position.z -= cameraScrollSpeed;
+	else
+		scene->camera.position.z += cameraScrollSpeed;
 }
 
 /**
@@ -569,6 +581,7 @@ int main()
     createWindow();
     createScenes();
     createGUI();
+	glfwSetScrollCallback(window, mouseWheelScrollCallbackEvent);
     run();
 
     glfwTerminate();
