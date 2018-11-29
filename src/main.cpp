@@ -28,7 +28,7 @@ bool traceTrajectory = false;
 bool traceDirection = false;
 
 // Automation attributes
-const float automationIterationTime = 3.0f;
+float automationIterationTime = 3.0f;
 bool automating = false;
 // Data entries read from file use to automate the simulation
 vector<fileReader::DataEntry> dataEntries;
@@ -212,6 +212,14 @@ void prepareNextAutomationIteration()
 	gui->refresh();
 }
 
+void stopAutomating() 
+{
+	automateButton->setCaption("Automate from file");
+	resetScene();
+	playing = false;
+	automating = false;
+}
+
 /**
 * Mean absolute percentage deviation analysis performed over the model and automated simulation values of the
 * peak height and horizontalDisplacementAtBounce, respectively.
@@ -226,7 +234,7 @@ void calculateMAPD()
 	for(n; n < automationValuesToCompare.size(); n++)
 	{
 		peakHeightMAPD += abs((dataEntries[n].peakHeight - automationValuesToCompare[n].first) / dataEntries[n].peakHeight);
-		horizontalDistMAPD += abs((dataEntries[n].horizontalDisplacement - automationValuesToCompare[n].second) / dataEntries[n].horizontalDisplacement);
+		horizontalDistMAPD += abs((dataEntries[n].horizontalDisplacement - abs(automationValuesToCompare[n].second)) / dataEntries[n].horizontalDisplacement);
 	}
 
 	peakHeightMAPD, horizontalDistMAPD *= (100 / n);
@@ -420,6 +428,7 @@ void createGUI()
 	{
 		gui->addGroup("Model-simulation analysis");
 
+		gui->addVariable("Time between iterations (s)", automationIterationTime);
 		gui->addVariable("Peak height MAPD (%)", peakHeightMAPD, false);
 		gui->addVariable("Horizontal travel MAPD (%)", horizontalDistMAPD, false);
 
@@ -431,16 +440,15 @@ void createGUI()
 				dataEntries = fr.getReadDataEntries();
 				currentDataEntryIndex = 0;
 				automationValuesToCompare.clear();
+				peakHeightMAPD = 0;
+				horizontalDistMAPD = 0;
 				automating = true;
 				prepareNextAutomationIteration();
 				automateButton->setCaption("Stop automation");
 			}
 			else
 			{
-				automateButton->setCaption("Automate from file");
-				resetScene();
-				playing = false;
-				automating = false;
+				stopAutomating();
 			}
 		});
 	}
@@ -559,9 +567,7 @@ void run()
 					// ... check to see if done with automating and stop...
 					if (currentDataEntryIndex >= dataEntries.size())
 					{
-						resetScene();
-						playing = false;
-						automating = false;
+						stopAutomating();
 					}
 					// ... reset initial values to next iteration and play again
 					else 

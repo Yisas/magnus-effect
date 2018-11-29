@@ -48,14 +48,10 @@ bool fileReader::loadFile()
 			dataEntry.initialVelocity = stof(line.substr(previous, current - previous));
 			nextPosition(line, previous, current);
 
-			// Skip the rots per second angular velocity
-			nextPosition(line, previous, current);
-
-			// Use the rads per second angular velocity
+			// Use rev/sec angular velocity, skip rest
 			dataEntry.rotVelocity = stof(line.substr(previous, current - previous));
 			nextPosition(line, previous, current);
-
-			// Skip m/s angular velocity
+			nextPosition(line, previous, current);
 			nextPosition(line, previous, current);
 
 			if (line.substr(previous, current - previous) == "Back Spin")
