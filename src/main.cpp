@@ -6,6 +6,7 @@
 #include "rigidbody.h"
 #include "scene.h"
 #include "trace.h"
+#include "direction.h"
 
 #include <nanogui/nanogui.h>
 #include <iostream>
@@ -21,7 +22,8 @@ float effectiveDeltaTime = 0;
 float timeStep = 0.01f;
 float playbackSpeed = 1;
 bool playing = false;
-bool traceTrajectory;
+bool traceTrajectory = false;
+bool traceDirection = false;
 
 GLFWwindow* window;
 nanogui::ref<Screen> screen;
@@ -34,6 +36,7 @@ unsigned int preset;
 vector<Scene> scenes;
 unique_ptr<Scene> scene;
 unique_ptr<Trace> trace;
+unique_ptr<Direction> direction;
 
 /**
  * Initialize OpenGL and create the application window.
@@ -76,7 +79,7 @@ void createScenes()
     // shaders
     shared_ptr<Shader> shader = make_shared<Shader>("shaders/scene.vert", "shaders/scene.frag");
     shared_ptr<Shader> depthShader = make_shared<Shader>("shaders/depth.vert", "shaders/depth.frag");
-    shared_ptr<Shader> traceShader = make_shared<Shader>("shaders/trace.vert", "shaders/trace.frag");
+    shared_ptr<Shader> lineShader = make_shared<Shader>("shaders/trace.vert", "shaders/trace.frag");
 
     // models
     shared_ptr<Model> planeModel = make_shared<Model>("models/plane.blend");
@@ -124,7 +127,8 @@ void createScenes()
     }
 
     scene = make_unique<Scene>(scenes[preset]);
-    trace = make_unique<Trace>(&scene->dynamicObjects[0], &scene->camera, traceShader);
+    trace = make_unique<Trace>(&scene->dynamicObjects[0], &scene->camera, lineShader);
+    direction = make_unique<Direction>(&scene->dynamicObjects[0], &scene->camera, lineShader);
 }
 
 /**
@@ -144,9 +148,14 @@ void resetScene()
 void loadScene()
 {
     scene = make_unique<Scene>(scenes[preset]);
+    RigidBody *newBall = &scene->dynamicObjects[0];
+    Camera *newCamera = &scene->camera;
+
     trace->clear();
-    trace->target = &scene->dynamicObjects[0];
-    trace->camera = &scene->camera;
+    trace->target = newBall;
+    trace->camera = newCamera;
+    direction->target = newBall;
+    direction->camera = newCamera;
 }
 
 /**
@@ -244,6 +253,7 @@ void createGUI()
     Camera &camera = scene->camera;
     gui->addWidget("Camera position", createVectorBox(optionsWindow, &camera.position));
     gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
+    gui->addVariable("Display velocity", traceDirection);
     gui->addVariable("Trace trajectory", traceTrajectory);
     gui->addVariable("Keep previous", Trace::keepPrevious);
 
@@ -383,6 +393,8 @@ void run()
         scene->draw();
         if (traceTrajectory)
             trace->draw();
+        if (traceDirection)
+            direction->draw();
 
         // draw GUI
         screen->drawContents();

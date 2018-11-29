@@ -55,6 +55,7 @@ void Trace::drawSeries(vector<glm::vec3> &series, glm::vec3 color)
     }
 
     // create buffers
+    unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
