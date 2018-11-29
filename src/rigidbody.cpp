@@ -38,7 +38,13 @@ void RigidBody::initialize()
 
 void RigidBody::initialize(fileReader::DataEntry dataEntry)
 {
-	initialPosition = glm::vec3(0, dataEntry.initialHeight, 0);
+	// If thrown from left to right ...
+	if(dataEntry.initialAngle > 0 && dataEntry.initialAngle < 90)
+		initialPosition = glm::vec3(1, dataEntry.initialHeight, 0);
+	else
+		// ... if thrown from right to left
+		initialPosition = glm::vec3(-1, dataEntry.initialHeight, 0);
+
 	initialRotation = glm::mat3(1);
 
 	switch (dataEntry.spinType)
