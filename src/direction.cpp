@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 
-const glm::vec3 Direction::LINEAR_VELOCITY_COLOR = glm::vec3(0.1f, 0.6f, 0.1f);
+const glm::vec3 Direction::LINEAR_VELOCITY_COLOR = glm::vec3(0.1f, 0.8f, 0.1f);
 const glm::vec3 Direction::ANGULAR_VELOCITY_COLOR = glm::vec3(1.0f, 0.8f, 0.2f);
 
 Direction::Direction(RigidBody *target, Camera *camera, shared_ptr<Shader> shader)

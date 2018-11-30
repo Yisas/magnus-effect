@@ -1,7 +1,7 @@
 #pragma once
 
 #include "transform.h"
-#include "fileReader.h"
+#include "filereader.h"
 
 #include <vector>
 
@@ -47,7 +47,7 @@ public:
 	* Reset the rigid body to the initial positions and velocities given by a DataEntry object.
 	* This also pre-calculates its inertia tensor.
 	*/
-	void initialize(fileReader::DataEntry dataEntry);
+	void initialize(FileReader::DataEntry dataEntry);
 
     /**
      * Update the rigid body attributes for the given time interval.

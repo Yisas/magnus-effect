@@ -36,7 +36,7 @@ void RigidBody::initialize()
 	hasBounced = false;
 }
 
-void RigidBody::initialize(fileReader::DataEntry dataEntry)
+void RigidBody::initialize(FileReader::DataEntry dataEntry)
 {
 	// If thrown from left to right ...
 	if(dataEntry.initialAngle > 0 && dataEntry.initialAngle < 90)
@@ -49,10 +49,10 @@ void RigidBody::initialize(fileReader::DataEntry dataEntry)
 
 	switch (dataEntry.spinType)
 	{
-	case fileReader::SpinType::BackSpin:
+	case FileReader::SpinType::BackSpin:
 		initialAngularVelocity = glm::vec3(0, 0, dataEntry.rotVelocity);
 		break;
-	case fileReader::SpinType::Topspin:
+	case FileReader::SpinType::Topspin:
 		initialAngularVelocity = glm::vec3(0, 0, -dataEntry.rotVelocity);
 		break;
 	default:

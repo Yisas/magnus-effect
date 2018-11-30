@@ -7,7 +7,7 @@
 #include "scene.h"
 #include "trace.h"
 #include "direction.h"
-#include "fileReader.h"
+#include "filereader.h"
 
 #include <nanogui/nanogui.h>
 #include <iostream>
@@ -27,8 +27,11 @@ bool traceTrajectory = false;
 bool traceDirection = false;
 
 // Camera control
-const float cameraScrollSpeed = 0.05f;
-const float cameraDragSpeed = 0.01f;
+double cursorX;
+double cursorY;
+const float cameraScrollSpeed = 0.25f;
+const float cameraDragSpeed = 0.005f;
+const float cameraRotateSpeed = 0.001f;
 double cameraXposDragStart;
 double cameraYposDragStart;
 double cameraXpos;
@@ -39,7 +42,7 @@ bool cameraDragging = false;
 float automationIterationTime = 3.0f;
 bool automating = false;
 // Data entries read from file use to automate the simulation
-vector<fileReader::DataEntry> dataEntries;
+vector<FileReader::DataEntry> dataEntries;
 // Start time of the current iteration of the automation
 float iterationStartFrame = 0;
 int currentDataEntryIndex = 0;
@@ -65,6 +68,8 @@ const float drag_OursSoccer = 0.45f;
 
 GLFWwindow* window;
 nanogui::ref<Screen> screen;
+nanogui::ref<Window> statisticsWindow;
+nanogui::ref<Window> automationWindow;
 nanogui::ref<FloatBox<float>> playbackSpeedBox;
 nanogui::ref<FloatBox<float>> timestepSpeedBox;
 nanogui::ref<Slider> playbackSpeedSlider;
@@ -72,6 +77,9 @@ nanogui::ref<Slider> timeStepSlider;
 nanogui::ref<Button> playButton;
 nanogui::ref<Button> automateButton;
 FormHelper *gui;
+bool showUI = true;
+bool statisticsWindowIsOpen = false;
+bool automationWindowIsOpen = false;
 
 vector<string> presets = { "Ping Pong", "Soccer" };
 unsigned int preset;
@@ -119,9 +127,9 @@ void createWindow()
 void cameraZoomCallbackEvent(double xoffset, double yoffset)
 {
 	if(yoffset < 0)
-		scene->camera.position.z -= cameraScrollSpeed;
+		scene->camera.position -= scene->camera.direction * cameraScrollSpeed;
 	else
-		scene->camera.position.z += cameraScrollSpeed;
+		scene->camera.position += scene->camera.direction * cameraScrollSpeed;
 }
 
 void cameraDragCallbackEvent(int button, int action, int mods)
@@ -246,8 +254,11 @@ void prepareNextAutomationIteration()
 void stopAutomating() 
 {
 	automateButton->setCaption("Automate from file");
-	resetScene();
-	scene->staticObjects[0].scale.x /= planeScaleMultiplier;
+    glm::vec3 cameraPosition = scene->camera.position;
+    glm::vec3 cameraDirection = scene->camera.direction;
+	loadScene();
+    scene->camera.position = cameraPosition;
+    scene->camera.direction = cameraDirection;
 	playing = false;
 	automating = false;
 }
@@ -290,7 +301,7 @@ nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
         nanogui::ref<Label> label = new Label(vectorBox, axis);
         nanogui::ref<FloatBox<float>> box = new FloatBox<float>(vectorBox);
         box->setEditable(true);
-        box->setFixedSize(Vector2i(50, 20));
+        box->setFixedSize(Vector2i(60, 20));
         box->setFontSize(16);
         box->setAlignment(TextBox::Alignment::Right);
         if (axis == "x")
@@ -327,27 +338,81 @@ nanogui::ref<Widget> createVectorBox(Widget* parent, glm::vec3* vector)
 * Create a widget of a row of buttons to select between preset values for a float variable.
 * togglableValues should be a pair of button captions and the value to set the variable to.
 */
-nanogui::ref<Widget> createAttributeTogglerWidget(Widget* parent, std::vector<pair<string, float>> togglableValues, float *value, FormHelper *gui)
+nanogui::ref<ComboBox> createAttributeTogglerWidget(Widget* parent, vector<pair<string, float>> togglableValues, float *value, FormHelper *gui)
 {
-	AdvancedGridLayout* parentLayout = (AdvancedGridLayout*)parent->layout();
+    AdvancedGridLayout* parentLayout = (AdvancedGridLayout*)parent->layout();
 	if (parentLayout->rowCount() > 0)
 		parentLayout->appendRow(5);
-	nanogui::ref<Widget> attributeToggler = new Widget(parent);
-	nanogui::ref<BoxLayout> layout = new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 3);
-	attributeToggler->setLayout(layout);
+    vector<string> presets = vector<string>();
+    for (pair<string, float> &preset : togglableValues)
+    {
+        presets.push_back(preset.first);
+    }
+
+    nanogui::ref<ComboBox> presetBox = new ComboBox(parent, presets);
+    presetBox->setFontSize(16);
+    presetBox->setCallback([=](const int i)
+    {
+        *value = togglableValues[i].second;
+        gui->refresh();
+    });
 	
-	int i = 0;
-	for (pair<string, float> var : togglableValues)
-	{
-		nanogui::ref<Button> box = new Button(attributeToggler, togglableValues[i].first);
-		box->setCallback([togglableValues, value, i, gui] {
-			*value = togglableValues[i].second;
-			gui->refresh();
-		});
-		i++;
-	}
-	
-	return attributeToggler;
+	return presetBox;
+}
+
+void createStatisticsWindow()
+{
+    gui->setFixedSize(Eigen::Vector2i(80, 20));
+    statisticsWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Statistics");
+    RigidBody &ball = scene->dynamicObjects[0];
+    gui->addVariable("Peak height (m)", ball.peakHeight, false);
+	gui->addVariable("Peak horizontal velocity (m/s)", ball.peakLinearVelocity.x, false);
+	gui->addVariable("Peak vectical velocity (m/s)", ball.peakLinearVelocity.y, false);
+	gui->addVariable("Peak sideways velocity (m/s)", ball.peakLinearVelocity.z, false);
+	gui->addVariable("Horizontal travel (m)", ball.horizontalDisplacementAtBounce, false);
+    gui->addButton("Close", [=](){
+        statisticsWindow->dispose();
+        statisticsWindowIsOpen = false;
+    });
+    statisticsWindow->center();
+}
+
+void createAutomationWindow()
+{
+    gui->setFixedSize(Eigen::Vector2i(80, 20));
+    automationWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Model-simulation analysis");
+    RigidBody &ball = scene->dynamicObjects[0];
+    gui->addVariable("Time between iterations (s)", automationIterationTime);
+    gui->addVariable("Peak height MAPD (%)", peakHeightMAPD, false);
+    gui->addVariable("Horizontal travel MAPD (%)", horizontalDistMAPD, false);
+
+    automateButton = gui->addButton("Automate from file", [&ball]()
+    {
+        if (!automating) 
+        {
+            FileReader fr = FileReader();
+            dataEntries = fr.getReadDataEntries();
+            currentDataEntryIndex = 0;
+            automationValuesToCompare.clear();
+            peakHeightMAPD = 0;
+            horizontalDistMAPD = 0;
+            automating = true;
+            prepareNextAutomationIteration();
+            automateButton->setCaption("Stop automation");
+            scene->staticObjects[0].scale.x *= planeScaleMultiplier;
+        }
+        else
+        {
+            stopAutomating();
+        }
+    });
+    gui->addButton("Close", [=](){
+        if (automating)
+            stopAutomating();
+        automationWindow->dispose();
+        automationWindowIsOpen = false;
+    });
+    automationWindow->center();
 }
 
 /**
@@ -360,22 +425,31 @@ void createGUI()
     screen = new Screen();
     screen->initialize(window, true);
     gui = new FormHelper(screen.get());
-    nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(20, 20), "Simulation");
+    nanogui::ref<Window> optionsWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Simulation");
     
-    gui->addGroup("Preset");
+    gui->addGroup("Ball");
     nanogui::ref<ComboBox> presetBox = new ComboBox(optionsWindow, presets);
     presetBox->setFontSize(16);    
     presetBox->setSelectedIndex(preset);
     presetBox->setCallback([&](const int value)
     {
         preset = value;
+        if (statisticsWindowIsOpen)
+        {
+            statisticsWindow->dispose();
+            statisticsWindowIsOpen = false;
+        }
+        if (automationWindowIsOpen)
+        {
+            automationWindow->dispose();
+            automationWindowIsOpen = false;
+        }
         loadScene();
         resetScene();
         createGUI();
     });
-    gui->addWidget("Scene", presetBox);
+    gui->addWidget("Preset", presetBox);
     
-    gui->addGroup("Ball");
     RigidBody &ball = scene->dynamicObjects[0];
     gui->addVariable<float>("Size",
         [=](float size) { scene->dynamicObjects[0].scale = glm::vec3(size); },
@@ -392,7 +466,7 @@ void createGUI()
 			pair<string, float>("Adair-Giordano", drag_AdairGiordano)
 		};
 	}
-	else {
+	else if (preset == 1) {
 		float radius = scene->dynamicObjects[0].scale.x / 2;
 		float crossSection = glm::pi<float>()*radius*radius;
 
@@ -403,30 +477,39 @@ void createGUI()
 		};
 	}
 
-	gui->addWidget("Preset drag constants", createAttributeTogglerWidget(optionsWindow, presetDragValues, &scene->dynamicObjects[0].drag, gui));
+	gui->addWidget("Preset drag coefficient", createAttributeTogglerWidget(optionsWindow, presetDragValues, &scene->dynamicObjects[0].drag, gui));
 	gui->addVariable("Drag", scene->dynamicObjects[0].drag);
 
     gui->addVariable("Bounciness", scene->dynamicObjects[0].bounciness);
     gui->addWidget("Initial position (m)", createVectorBox(optionsWindow, &ball.initialPosition));
     gui->addWidget("Linear velocity (m/s)", createVectorBox(optionsWindow, &ball.initialLinearVelocity));
-    gui->addWidget("Angular velocity (rads/s)", createVectorBox(optionsWindow, &ball.initialAngularVelocity));
+    gui->addWidget("Angular velocity (rad/s)", createVectorBox(optionsWindow, &ball.initialAngularVelocity));
+    
+    gui->addGroup("Forces");
     gui->addVariable("Gravitational force", RigidBody::useGravity);
     gui->addVariable("Magnus force", RigidBody::useMagnusForce);
 
     gui->addGroup("Rendering");
-    Camera &camera = scene->camera;
-    gui->addWidget("Camera direction", createVectorBox(optionsWindow, &camera.direction));
     gui->addVariable("Display velocity", traceDirection);
     gui->addVariable("Trace trajectory", traceTrajectory);
-    gui->addVariable("Keep previous", Trace::keepPrevious);
-
-	gui->addVariable("Peak height (m)", ball.peakHeight, false);
-	gui->addVariable("Peak horizontal velocity (m/s)", ball.peakLinearVelocity.x, false);
-	gui->addVariable("Peak vectical velocity (m/s)", ball.peakLinearVelocity.y, false);
-	gui->addVariable("Peak sideways velocity (m/s)", ball.peakLinearVelocity.z, false);
-	gui->addVariable("Horizontal travel (m)", ball.horizontalDisplacementAtBounce, false);
+    gui->addVariable("Keep previous trajectory", Trace::keepPrevious);
 
     gui->addGroup("Controls");
+    timestepSpeedBox = gui->addVariable("Timestep", timeStep);
+	timestepSpeedBox->setCallback([=](float value)
+	{
+		timeStep = value;
+		timeStepSlider->setValue(value);
+	});
+	timeStepSlider = new Slider(optionsWindow);
+	timeStepSlider->setRange(pair<float, float>(0.0001f, 0.02f));
+	timeStepSlider->setValue(timeStep);
+	timeStepSlider->setCallback([=](float value)
+	{
+		timeStep = value;
+		timestepSpeedBox->setValue(value);
+	});
+	gui->addWidget(" ", timeStepSlider);
     playbackSpeedBox = gui->addVariable("Playback speed", playbackSpeed);
     playbackSpeedBox->setCallback([=](float value)
     {
@@ -443,22 +526,23 @@ void createGUI()
     });
     gui->addWidget(" ", playbackSpeedSlider);
 
-	timestepSpeedBox = gui->addVariable("Timestep", timeStep);
-	timestepSpeedBox->setCallback([=](float value)
+    gui->addButton("Show statistics", []()
+    {
+        if (!statisticsWindowIsOpen) {
+            createStatisticsWindow();
+            statisticsWindowIsOpen = true;
+        }
+    }); 
+    if (preset == 0) 
 	{
-		timeStep = value;
-		timeStepSlider->setValue(value);
-	});
-	timeStepSlider = new Slider(optionsWindow);
-	timeStepSlider->setRange(pair<float, float>(0.0001f, 0.02f));
-	timeStepSlider->setValue(timeStep);
-	timeStepSlider->setCallback([=](float value)
-	{
-		timeStep = value;
-		timestepSpeedBox->setValue(value);
-	});
-	gui->addWidget(" ", timeStepSlider);
-
+        gui->addButton("Show automation", []()
+        {
+            if (!automationWindowIsOpen) {
+                createAutomationWindow();
+                automationWindowIsOpen = true;
+            }
+        });
+	}
     playButton = gui->addButton("Play", []()
     {
         if (!playing)
@@ -472,36 +556,6 @@ void createGUI()
         }
     });
 
-	if (preset == 0) 
-	{
-		gui->addGroup("Model-simulation analysis");
-
-		gui->addVariable("Time between iterations (s)", automationIterationTime);
-		gui->addVariable("Peak height MAPD (%)", peakHeightMAPD, false);
-		gui->addVariable("Horizontal travel MAPD (%)", horizontalDistMAPD, false);
-
-		automateButton = gui->addButton("Automate from file", [&ball]()
-		{
-			if (!automating) 
-			{
-				fileReader fr = fileReader();
-				dataEntries = fr.getReadDataEntries();
-				currentDataEntryIndex = 0;
-				automationValuesToCompare.clear();
-				peakHeightMAPD = 0;
-				horizontalDistMAPD = 0;
-				automating = true;
-				prepareNextAutomationIteration();
-				automateButton->setCaption("Stop automation");
-				scene->staticObjects[0].scale.x *= planeScaleMultiplier;
-			}
-			else
-			{
-				stopAutomating();
-			}
-		});
-	}
-
     screen->setVisible(true);
     screen->performLayout();
 
@@ -510,7 +564,17 @@ void createGUI()
     glfwSetCursorPosCallback(window,
         [](GLFWwindow *, double x, double y)
         {
+            double previousCursorX = cursorX, previousCursorY = cursorY;
             screen->cursorPosCallbackEvent(x, y);
+            cursorX = x;
+            cursorY = y;
+            int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
+            if (state == GLFW_PRESS)
+            {
+                double deltaX = cursorX - previousCursorX, deltaY = cursorY - previousCursorY;
+                glm::mat3 rotation = glm::rotate(glm::mat4(1.0f), -(float)deltaY * cameraRotateSpeed, glm::vec3(1, 0, 0));
+                scene->camera.direction = rotation * scene->camera.direction;
+            }
         }
     );
 
@@ -527,13 +591,19 @@ void createGUI()
         {
             screen->keyCallbackEvent(key, scancode, action, mods);
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            {
                 glfwSetWindowShouldClose(window, true);
-            if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+            }
+            else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
             {
                 if (playing)
                     resetScene();
                 else
                     playButton->callback()();
+            }
+            else if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+            {
+                showUI = !showUI;
             }
         }
     );
@@ -580,13 +650,14 @@ void run()
 {
     // rendering loop
     lastFrame = glfwGetTime();
+    glfwGetCursorPos(window, &cursorX, &cursorY);
     while (glfwWindowShouldClose(window) == false)
     {
 		if (cameraDragging) 
 		{
 			glfwGetCursorPos(window, &cameraXpos, &cameraYpos);
-			scene->camera.position.x += (cameraXpos - cameraXposDragStart) * cameraDragSpeed;
-			scene->camera.position.y += (cameraYpos - cameraYposDragStart) * cameraDragSpeed;
+            scene->camera.position.x += (cameraXpos - cameraXposDragStart) * cameraDragSpeed;
+            scene->camera.position.y += (cameraYpos - cameraYposDragStart) * cameraDragSpeed;
 			cameraXposDragStart = cameraXpos;
 			cameraYposDragStart = cameraYpos;
 		}
@@ -655,8 +726,11 @@ void run()
             direction->draw();
 
         // draw GUI
-        screen->drawContents();
-        screen->drawWidgets();
+        if (showUI)
+        {
+            screen->drawContents();
+            screen->drawWidgets();
+        }
 
         // flip buffers and draw
         glfwSwapBuffers(window);

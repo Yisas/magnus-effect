@@ -6,7 +6,7 @@ using namespace std;
 /**
 * Parser for the csv model files
 **/
-class fileReader
+class FileReader
 {
 public:
 	enum SpinType { BackSpin, Topspin, None };
@@ -21,8 +21,8 @@ public:
 		float horizontalDisplacement;
 	};
 
-	fileReader();
-	~fileReader();
+	FileReader();
+	~FileReader();
 
 	vector<DataEntry> getReadDataEntries() { return readDataEntries; }
 

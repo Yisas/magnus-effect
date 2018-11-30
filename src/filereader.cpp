@@ -1,25 +1,25 @@
-#include "fileReader.h"
+#include "filereader.h"
 #include <iostream>
 #include <fstream>
 
-fileReader::fileReader()
+FileReader::FileReader()
 {
 	loadFile();
 }
 
 
-fileReader::~fileReader()
+FileReader::~FileReader()
 {
 }
 
-void fileReader::nextPosition(string line, std::size_t &previous, std::size_t &current)
+void FileReader::nextPosition(string line, std::size_t &previous, std::size_t &current)
 {
 	current = line.find(",", previous);
 	previous = current + 1;
 	current = line.find(",", previous);
 }
 
-bool fileReader::loadFile()
+bool FileReader::loadFile()
 {
 	ifstream file(fileAddress);
 	if (file.is_open()) {
