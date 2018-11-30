@@ -29,6 +29,46 @@ void RigidBody::initialize()
     linearVelocity = initialLinearVelocity;
     angularVelocity = initialAngularVelocity;
     angularMomentum = bodySpaceInertiaTensor * angularVelocity;
+
+	peakHeight = position.y;
+	peakLinearVelocity = linearVelocity;
+	horizontalDisplacementAtBounce = 0;
+	hasBounced = false;
+}
+
+void RigidBody::initialize(fileReader::DataEntry dataEntry)
+{
+	// If thrown from left to right ...
+	if(dataEntry.initialAngle > 0 && dataEntry.initialAngle < 90)
+		initialPosition = glm::vec3(1, dataEntry.initialHeight, 0);
+	else
+		// ... if thrown from right to left
+		initialPosition = glm::vec3(-1, dataEntry.initialHeight, 0);
+
+	initialRotation = glm::mat3(1);
+
+	switch (dataEntry.spinType)
+	{
+	case fileReader::SpinType::BackSpin:
+		initialAngularVelocity = glm::vec3(0, 0, dataEntry.rotVelocity);
+		break;
+	case fileReader::SpinType::Topspin:
+		initialAngularVelocity = glm::vec3(0, 0, -dataEntry.rotVelocity);
+		break;
+	default:
+		initialAngularVelocity = glm::vec3(0, 0, 0);
+		break;
+	}
+
+	initialLinearVelocity = glm::vec3(
+		cos((180.0f - dataEntry.initialAngle) * glm::pi<float>() / 180.0f),
+		sin((180.0f - dataEntry.initialAngle) * glm::pi<float>() / 180.0f),
+		0
+	);
+	initialLinearVelocity = glm::normalize(initialLinearVelocity);
+	initialLinearVelocity *= dataEntry.initialVelocity;
+	
+	initialize();
 }
 
 void RigidBody::update(float deltaTime)
@@ -52,6 +92,16 @@ void RigidBody::update(float deltaTime)
         * transpose(glm::mat3(rotation));
     angularVelocity = inertiaTensorInverse * angularMomentum;
     rotation *= glm::quat(angularVelocity * deltaTime);
+
+	// Check for peak values
+	if (position.y > peakHeight)
+		peakHeight = position.y;
+	if (abs(linearVelocity.x) > abs(peakLinearVelocity.x))
+		peakLinearVelocity.x = linearVelocity.x;
+	if (abs(linearVelocity.y) > abs(peakLinearVelocity.y))
+		peakLinearVelocity.y = linearVelocity.y;
+	if (abs(linearVelocity.z) > abs(peakLinearVelocity.z))
+		peakLinearVelocity.z = linearVelocity.z;
 
     // clean up
     forces.clear();
@@ -91,5 +141,12 @@ void RigidBody::checkCollision()
         position -= penetration / -linearVelocity.y * linearVelocity;
         linearVelocity = glm::reflect(linearVelocity, GROUND_NORMAL) * bounciness;
         angularMomentum *= bounciness;
+
+		// Record deltaX at bounce
+		if (!hasBounced) 
+		{
+			horizontalDisplacementAtBounce = position.x - initialPosition.x;
+			hasBounced = true;
+		}
     }
 }

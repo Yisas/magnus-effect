@@ -1,6 +1,7 @@
 #pragma once
 
 #include "transform.h"
+#include "fileReader.h"
 
 #include <vector>
 
@@ -14,6 +15,7 @@ public:
     float mass;
     float drag;
     float bounciness;
+	bool hasBounced = false;
 
     // initial conditions
     glm::vec3 initialPosition = glm::vec3(0, 0, 0);
@@ -25,6 +27,11 @@ public:
     glm::vec3 linearVelocity = glm::vec3(0, 0, 0);
     glm::vec3 angularVelocity = glm::vec3(0, 0, 0);
 
+	// Aditional attributes for display
+	float peakHeight = 0;
+	glm::vec3 peakLinearVelocity = initialLinearVelocity;
+	float horizontalDisplacementAtBounce = 0;
+
     /**
      * Create a new rigid body for the given model.
      */
@@ -35,6 +42,12 @@ public:
      * This also pre-calculates its inertia tensor.
      */
     void initialize();
+
+	/**
+	* Reset the rigid body to the initial positions and velocities given by a DataEntry object.
+	* This also pre-calculates its inertia tensor.
+	*/
+	void initialize(fileReader::DataEntry dataEntry);
 
     /**
      * Update the rigid body attributes for the given time interval.
