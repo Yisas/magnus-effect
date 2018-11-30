@@ -65,8 +65,10 @@ const float drag_OursSoccer = 0.45f;
 
 GLFWwindow* window;
 nanogui::ref<Screen> screen;
-nanogui::ref<FloatBox<float>> speedBox;
-nanogui::ref<Slider> speedSlider;
+nanogui::ref<FloatBox<float>> playbackSpeedBox;
+nanogui::ref<FloatBox<float>> timestepSpeedBox;
+nanogui::ref<Slider> playbackSpeedSlider;
+nanogui::ref<Slider> timeStepSlider;
 nanogui::ref<Button> playButton;
 nanogui::ref<Button> automateButton;
 FormHelper *gui;
@@ -164,7 +166,7 @@ void createScenes()
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
         plane.scale = glm::vec3(2.74f, 1.525f, 1.0f);
-        RigidBody ball(ballModel, 0.0027f, 0.75f, 0.0001f);
+        RigidBody ball(ballModel, 0.0027f, 0.75f, drag_OursPingPong);
         ball.scale = glm::vec3(0.04f);
         ball.initialPosition = glm::vec3(-1.0f, 0.5f, 0.0f);
         ball.initialLinearVelocity = glm::vec3(1.5f, 1.5f, 0.0f);
@@ -185,7 +187,7 @@ void createScenes()
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
         plane.scale = glm::vec3(50);
-        RigidBody ball(ballModel, 0.450f, 0.5f, 0.005f);
+        RigidBody ball(ballModel, 0.450f, 0.5f, drag_OursSoccer);
         ball.scale = glm::vec3(0.22f);
         ball.initialPosition = glm::vec3(0, 0.11f, -20);
         ball.initialLinearVelocity = glm::vec3(5, 5, 20);
@@ -425,21 +427,38 @@ void createGUI()
 	gui->addVariable("Horizontal travel (m)", ball.horizontalDisplacementAtBounce, false);
 
     gui->addGroup("Controls");
-    speedBox = gui->addVariable("Playback speed", playbackSpeed);
-    speedBox->setCallback([=](float value)
+    playbackSpeedBox = gui->addVariable("Playback speed", playbackSpeed);
+    playbackSpeedBox->setCallback([=](float value)
     {
         playbackSpeed = value;
-        speedSlider->setValue(value);
+        playbackSpeedSlider->setValue(value);
     });
-    speedSlider = new Slider(optionsWindow);
-    speedSlider->setRange(pair<float, float>(0, 2));
-    speedSlider->setValue(playbackSpeed);
-    speedSlider->setCallback([=](float value)
+    playbackSpeedSlider = new Slider(optionsWindow);
+    playbackSpeedSlider->setRange(pair<float, float>(0, 2));
+    playbackSpeedSlider->setValue(playbackSpeed);
+    playbackSpeedSlider->setCallback([=](float value)
     {
         playbackSpeed = value;
-        speedBox->setValue(value);
+        playbackSpeedBox->setValue(value);
     });
-    gui->addWidget(" ", speedSlider);
+    gui->addWidget(" ", playbackSpeedSlider);
+
+	timestepSpeedBox = gui->addVariable("Timestep", timeStep);
+	timestepSpeedBox->setCallback([=](float value)
+	{
+		timeStep = value;
+		timeStepSlider->setValue(value);
+	});
+	timeStepSlider = new Slider(optionsWindow);
+	timeStepSlider->setRange(pair<float, float>(0.0001f, 0.02f));
+	timeStepSlider->setValue(timeStep);
+	timeStepSlider->setCallback([=](float value)
+	{
+		timeStep = value;
+		timestepSpeedBox->setValue(value);
+	});
+	gui->addWidget(" ", timeStepSlider);
+
     playButton = gui->addButton("Play", []()
     {
         if (!playing)
