@@ -64,7 +64,7 @@ const float drag_AdairGiordano = 0.00041f;
 const float drag_Wesson = 0.3f;
 // These final drag coefficients should correspond to the ones found to most resemble the captured model
 const float drag_OursPingPong = 0.00005f;
-const float drag_OursSoccer = 0.45f;
+const float drag_OursSoccer = 0.005f;
 
 GLFWwindow* window;
 nanogui::ref<Screen> screen;
