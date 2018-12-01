@@ -87,6 +87,7 @@ vector<Scene> scenes;
 unique_ptr<Scene> scene;
 unique_ptr<Trace> trace;
 unique_ptr<Direction> direction;
+glm::vec3 planePosition;
 
 /**
  * Initialize OpenGL and create the application window.
@@ -174,6 +175,7 @@ void createScenes()
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
         plane.scale = glm::vec3(2.74f, 1.525f, 1.0f);
+		planePosition = plane.position;
         RigidBody ball(ballModel, 0.0027f, 0.75f, drag_OursPingPong);
         ball.scale = glm::vec3(0.04f);
         ball.initialPosition = glm::vec3(-1.0f, 0.5f, 0.0f);
@@ -195,6 +197,7 @@ void createScenes()
         Transform plane(planeModel);
         plane.rotation = glm::rotate(glm::mat4(1), glm::radians(-90.0f), glm::vec3(1, 0, 0));
         plane.scale = glm::vec3(50);
+		planePosition = plane.position;
         RigidBody ball(ballModel, 0.450f, 0.5f, drag_OursSoccer);
         ball.scale = glm::vec3(0.22f);
         ball.initialPosition = glm::vec3(0, 0.11f, -20);
@@ -571,9 +574,25 @@ void createGUI()
             int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
             if (state == GLFW_PRESS)
             {
+				// Vertical look
                 double deltaX = cursorX - previousCursorX, deltaY = cursorY - previousCursorY;
                 glm::mat3 rotation = glm::rotate(glm::mat4(1.0f), -(float)deltaY * cameraRotateSpeed, glm::vec3(1, 0, 0));
                 scene->camera.direction = rotation * scene->camera.direction;
+				
+				// Horizontal orbit around plane
+				// Calculate transform distance ...
+				glm::vec3 distanceToPlane = planePosition - scene->camera.position;
+				distanceToPlane.y = 0;
+				glm::vec3 planeCenterAtCameraHeightLevel = planePosition;
+				planeCenterAtCameraHeightLevel.y = scene->camera.position.y;
+				// ... rotate around camera up ... 
+				rotation = glm::rotate(glm::mat4(1.0f), -(float)deltaX * cameraRotateSpeed, glm::vec3(0, 1, 0));
+				scene->camera.direction = rotation * scene->camera.direction;
+				// ... move backwards in the new direction using the prior transform distance magnitude
+				scene->camera.position = planeCenterAtCameraHeightLevel;
+				glm::vec3 cameraDirectionExcludingY = scene->camera.direction;
+				cameraDirectionExcludingY.y = 0;
+				scene->camera.position -= (float)distanceToPlane.length() * cameraDirectionExcludingY;
             }
         }
     );
