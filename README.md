@@ -37,6 +37,14 @@ cmake -G "Xcode" ..
 cmake -G "Visual Studio 15" ..
 ```
 
+# Application Controls
+The application supports the following mouse and keyboard controls.
+* `LMB`, press to interact with the GUI
+* `MMB`, scroll to zoom in or out and hold to rotate the camera
+* `RMB`, hold to move the camera
+* `TAB`, press to toggle the GUI
+* `SPACE`, press to play or stop the simulation
+
 # Acknowledgements
 The following resources were used for the development of this project.
 
