@@ -229,6 +229,8 @@ void resetScene()
 void loadScene()
 {
     scene = make_unique<Scene>(scenes[preset]);
+    scene->camera.width = width;
+    scene->camera.height = height;
     RigidBody *newBall = &scene->dynamicObjects[0];
     Camera *newCamera = &scene->camera;
 
